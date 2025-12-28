@@ -261,7 +261,9 @@ export const TokenSale = () => {
                   onClick={selectedWallet === 'metamask' ? connectMetamask : connectAptos}
                   data-testid="connect-wallet-button"
                   className="w-full h-16 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl shadow-lg"
-                >\n                  <Wallet className=\"w-6 h-6 mr-2\" />\n                  Connect {selectedWallet === 'metamask' ? 'MetaMask' : 'Petra Wallet'}
+                >
+                  <Wallet className="w-6 h-6 mr-2" />
+                  Connect {selectedWallet === 'metamask' ? 'MetaMask' : 'Petra Wallet'}
                 </Button>
               </div>
             )}
