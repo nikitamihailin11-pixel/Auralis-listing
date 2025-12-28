@@ -212,53 +212,23 @@ export const TokenSale = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl p-8 rounded-3xl">
-            {/* Wallet Selection */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-300 mb-3">Select Wallet</label>
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  onClick={() => setSelectedWallet('metamask')}
-                  data-testid="select-metamask-button"
-                  variant={selectedWallet === 'metamask' ? 'default' : 'outline'}
-                  className={`h-16 text-lg font-semibold transition-all ${
-                    selectedWallet === 'metamask'
-                      ? 'bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white border-0'
-                      : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10'
-                  }`}
-                >
-                  <img
-                    src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjYuNyA2LjZMMTcuOCAxM2wxLjctNC4yIDcuMi0yLjJ6IiBmaWxsPSIjRTI3NjFCIi8+PHBhdGggZD0iTTUuMyA2LjZsOC44IDYuNS0xLjctNC4yLTcuMS0yLjN6bTE3LjggMTQuOGwtMi40IDMuN3Y0LjNsMy42LTItMS4yLTYuMXpNOSAxMC40bDEuNyA0LjJMMy4zIDI5IDkgMjEuNHoiIGZpbGw9IiNFNDc2MUIiLz48L3N2Zz4="
-                    alt="MetaMask"
-                    className="w-6 h-6 mr-2"
-                  />
-                  MetaMask
-                </Button>
-                <Button
-                  onClick={() => setSelectedWallet('aptos')}
-                  data-testid="select-petra-button"
-                  variant={selectedWallet === 'aptos' ? 'default' : 'outline'}
-                  className={`h-16 text-lg font-semibold transition-all ${
-                    selectedWallet === 'aptos'
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0'
-                      : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10'
-                  }`}
-                >
-                  <Wallet className="w-6 h-6 mr-2" />
-                  Petra (Aptos)
-                </Button>
-              </div>
+            {/* Wallet Info Banner */}
+            <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl p-4">
+              <p className="text-sm text-gray-300 text-center">
+                💎 <span className="font-semibold">Pay with USDT</span> on Aptos Network via Petra Wallet
+              </p>
             </div>
 
             {/* Connect Wallet Button */}
             {!isConnected && (
               <div className="mb-8">
                 <Button
-                  onClick={selectedWallet === 'metamask' ? connectMetamask : connectAptos}
+                  onClick={connectAptos}
                   data-testid="connect-wallet-button"
-                  className="w-full h-16 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl shadow-lg"
+                  className="w-full h-16 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl shadow-lg"
                 >
                   <Wallet className="w-6 h-6 mr-2" />
-                  Connect {selectedWallet === 'metamask' ? 'MetaMask' : 'Petra'}
+                  Connect Petra Wallet
                 </Button>
               </div>
             )}
