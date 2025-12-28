@@ -3,263 +3,138 @@ import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
-
-// Payment addresses
-const APTOS_PAYMENT_ADDRESS = '0x794057867f5bd5ea24a9c2152bfbe9bd30b01c7041e17619c6b34ef3a3897501';
-const POLYGON_PAYMENT_ADDRESS = '0x0825d5461abffd07860f28b1b78448cc7ac00239';
+const SOLANA_PAYMENT_ADDRESS = 'C8G8Wir2RBNW5bwwrtS4wcpapKqw5abNMXdVjQSGsS21';
 
 const WalletContext = createContext();
 
 export function WalletProvider({ children }) {
-  const [metamaskAccount, setMetamaskAccount] = useState(null);
-  const [metamaskBalance, setMetamaskBalance] = useState(null);
-  const [aptosAccount, setAptosAccount] = useState(null);
-  const [aptosBalance, setAptosBalance] = useState(null);
-  const [isMetamaskConnected, setIsMetamaskConnected] = useState(false);
-  const [isAptosConnected, setIsAptosConnected] = useState(false);
-  const [selectedWallet, setSelectedWallet] = useState('metamask');
+  const [phantomAccount, setPhantomAccount] = useState(null);
+  const [phantomBalance, setPhantomBalance] = useState(null);
+  const [isPhantomConnected, setIsPhantomConnected] = useState(false);
+  const [userOrders, setUserOrders] = useState([]);
+  const [userStats, setUserStats] = useState({ totalTokens: 0, totalSpent: 0 });
 
-  const connectMetamask = async () => {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      alert('Please install MetaMask extension');
-      window.open('https://metamask.io/', '_blank');
+  const connectPhantom = async () => {
+    if (typeof window === 'undefined' || !window.solana) {
+      alert('Please install Phantom Wallet');
+      window.open('https://phantom.app/', '_blank');
       return;
     }
 
     try {
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      });
-
-      if (accounts && accounts.length > 0) {
-        setMetamaskAccount(accounts[0]);
-        setIsMetamaskConnected(true);
-        await fetchMetamaskBalance(accounts[0]);
-        localStorage.setItem('metamaskConnected', 'true');
-        
-        // Save to backend
-        try {
-          await axios.post(`${API}/wallets/connect`, {
-            address: accounts[0],
-            blockchain: 'polygon',
-            balance: 0
-          });
-        } catch (err) {
-          console.error('Failed to save wallet to backend:', err);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to connect MetaMask:', error);
-      alert('Failed to connect MetaMask wallet');
-    }
-  };
-
-  const fetchMetamaskBalance = async (address) => {
-    try {
-      const balance = await window.ethereum.request({
-        method: 'eth_getBalance',
-        params: [address, 'latest'],
-      });
-
-      const balanceInEth = parseInt(balance, 16) / 1e18;
-      setMetamaskBalance(balanceInEth.toFixed(4));
-    } catch (error) {
-      console.error('Failed to fetch MetaMask balance:', error);
-    }
-  };
-
-  const disconnectMetamask = async () => {
-    setMetamaskAccount(null);
-    setMetamaskBalance(null);
-    setIsMetamaskConnected(false);
-    localStorage.removeItem('metamaskConnected');
-  };
-
-  const connectAptos = async () => {
-    if (typeof window === 'undefined' || !window.aptos) {
-      alert('Please install Petra Wallet extension');
-      window.open('https://petra.app/', '_blank');
-      return;
-    }
-
-    try {
-      const isConnected = await window.aptos.isConnected();
+      const resp = await window.solana.connect();
+      const pubKey = resp.publicKey.toString();
       
-      if (!isConnected) {
-        await window.aptos.connect();
-      }
-      
-      const account = await window.aptos.account();
-      
-      if (account && account.address) {
-        setAptosAccount(account.address);
-        setIsAptosConnected(true);
-        localStorage.setItem('aptosConnected', 'true');
-        setAptosBalance('0.0000');
-        
-        try {
-          await axios.post(`${API}/wallets/connect`, {
-            address: account.address,
-            blockchain: 'aptos',
-            balance: 0
-          });
-        } catch (err) {
-          console.error('Failed to save wallet to backend:', err);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to connect Petra:', error);
-      
-      if (error.message && error.message.includes('User rejected')) {
-        alert('Connection rejected. Please try again.');
-      } else if (error.message && error.message.includes('Not installed')) {
-        alert('Petra Wallet is not installed. Please install it first.');
-        window.open('https://petra.app/', '_blank');
-      } else {
-        alert('Failed to connect Petra wallet: ' + (error.message || 'Unknown error'));
-      }
-    }
-  };
+      setPhantomAccount(pubKey);
+      setIsPhantomConnected(true);
+      localStorage.setItem('phantomConnected', 'true');
 
-  const disconnectAptos = async () => {
-    try {
-      if (window.aptos) {
-        await window.aptos.disconnect();
-      }
-    } catch (error) {
-      console.error('Failed to disconnect Petra:', error);
-    }
-    setAptosAccount(null);
-    setAptosBalance(null);
-    setIsAptosConnected(false);
-    localStorage.removeItem('aptosConnected');
-  };
+      // Get balance
+      const balance = await window.solana.getBalance();
+      setPhantomBalance((balance / 1e9).toFixed(4));
 
-  const sendPolygonUSDT = async (amountUSD) => {
-    if (!window.ethereum || !isMetamaskConnected) {
-      throw new Error('MetaMask not connected');
-    }
-
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      
-      if (accounts.length === 0) {
-        throw new Error('Please connect MetaMask');
-      }
-
-      // Switch to Polygon network (Chain ID: 137)
+      // Save to backend
       try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x89' }], // 137 in hex
+        await axios.post(`${API}/wallets/connect`, {
+          address: pubKey,
+          blockchain: 'solana',
+          balance: 0
         });
-      } catch (switchError) {
-        // Chain not added, add it
-        if (switchError.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x89',
-              chainName: 'Polygon Mainnet',
-              nativeCurrency: {
-                name: 'MATIC',
-                symbol: 'MATIC',
-                decimals: 18
-              },
-              rpcUrls: ['https://polygon-rpc.com/'],
-              blockExplorerUrls: ['https://polygonscan.com/']
-            }]
-          });
-        } else {
-          throw switchError;
-        }
+      } catch (err) {
+        console.error('Failed to save wallet:', err);
       }
 
-      // Send USDT transaction on Polygon (using USDT contract)
-      // USDT on Polygon: 0xc2132D05D31c914a87C6611C10748AEb04B58e8F
-      const USDT_CONTRACT = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F';
-      const usdtAmount = Math.floor(amountUSD * 1000000); // USDT has 6 decimals
-      
-      // ERC20 transfer function signature
-      const transferData = `0xa9059cbb000000000000000000000000${POLYGON_PAYMENT_ADDRESS.substring(2)}${usdtAmount.toString(16).padStart(64, '0')}`;
-      
-      const transactionParameters = {
-        from: accounts[0],
-        to: USDT_CONTRACT,
-        data: transferData,
-      };
-
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [transactionParameters],
-      });
-
-      return { hash: txHash };
+      // Fetch user orders
+      await fetchUserOrders(pubKey);
     } catch (error) {
-      console.error('Polygon USDT payment failed:', error);
-      throw error;
+      console.error('Phantom connection failed:', error);
+      alert('Failed to connect Phantom wallet');
     }
   };
 
-  const sendUSDTPayment = async (amountUSD) => {
-    if (!window.aptos || !isAptosConnected) {
-      throw new Error('Petra Wallet not connected');
+  const fetchUserOrders = async (address) => {
+    try {
+      const response = await axios.get(`${API}/orders/wallet/${address}`);
+      setUserOrders(response.data);
+      
+      const totalTokens = response.data.reduce((sum, order) => sum + order.quantity, 0);
+      const totalSpent = response.data.reduce((sum, order) => sum + order.total_amount, 0);
+      
+      setUserStats({ totalTokens, totalSpent });
+    } catch (error) {
+      console.error('Failed to fetch user orders:', error);
+    }
+  };
+
+  const disconnectPhantom = async () => {
+    try {
+      if (window.solana) {
+        await window.solana.disconnect();
+      }
+    } catch (error) {
+      console.error('Failed to disconnect:', error);
+    }
+    setPhantomAccount(null);
+    setPhantomBalance(null);
+    setIsPhantomConnected(false);
+    setUserOrders([]);
+    setUserStats({ totalTokens: 0, totalSpent: 0 });
+    localStorage.removeItem('phantomConnected');
+  };
+
+  const sendSolanaPayment = async (amountUSD) => {
+    if (!window.solana || !isPhantomConnected) {
+      throw new Error('Phantom not connected');
     }
 
     try {
-      const USDT_TYPE = '0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDT';
-      const usdtAmount = Math.floor(amountUSD * 1000000);
+      const { SystemProgram, Transaction, PublicKey, LAMPORTS_PER_SOL } = window.solanaWeb3 || {};
       
-      const transaction = {
-        type: 'entry_function_payload',
-        function: '0x1::coin::transfer',
-        type_arguments: [USDT_TYPE],
-        arguments: [
-          APTOS_PAYMENT_ADDRESS,
-          usdtAmount.toString()
-        ]
-      };
+      if (!SystemProgram) {
+        throw new Error('Solana Web3.js not loaded');
+      }
+
+      const lamports = Math.floor(amountUSD * LAMPORTS_PER_SOL); // 1 SOL = 1 USD for simplicity
       
-      const response = await window.aptos.signAndSubmitTransaction(transaction);
-      return response;
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: new PublicKey(phantomAccount),
+          toPubkey: new PublicKey(SOLANA_PAYMENT_ADDRESS),
+          lamports: lamports,
+        })
+      );
+
+      transaction.feePayer = new PublicKey(phantomAccount);
+      const { blockhash } = await window.solana.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+
+      const signed = await window.solana.signAndSendTransaction(transaction);
+      return { hash: signed.signature };
     } catch (error) {
-      console.error('USDT payment failed:', error);
+      console.error('Solana payment failed:', error);
       throw error;
     }
   };
 
   useEffect(() => {
-    const reconnectWallets = async () => {
-      const wasMetamaskConnected = localStorage.getItem('metamaskConnected') === 'true';
-      const wasAptosConnected = localStorage.getItem('aptosConnected') === 'true';
-
-      if (wasMetamaskConnected && window.ethereum) {
-        await connectMetamask();
-      }
-
-      if (wasAptosConnected && window.aptos) {
-        await connectAptos();
+    const reconnect = async () => {
+      if (localStorage.getItem('phantomConnected') === 'true' && window.solana) {
+        await connectPhantom();
       }
     };
-
-    reconnectWallets();
+    reconnect();
   }, []);
 
   const value = {
-    metamaskAccount,
-    metamaskBalance,
-    aptosAccount,
-    aptosBalance,
-    isMetamaskConnected,
-    isAptosConnected,
-    selectedWallet,
-    setSelectedWallet,
-    connectMetamask,
-    connectAptos,
-    disconnectMetamask,
-    disconnectAptos,
-    sendPolygonUSDT,
-    sendUSDTPayment,
+    phantomAccount,
+    phantomBalance,
+    isPhantomConnected,
+    userOrders,
+    userStats,
+    connectPhantom,
+    disconnectPhantom,
+    sendSolanaPayment,
+    fetchUserOrders,
   };
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
