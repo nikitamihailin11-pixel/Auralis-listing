@@ -5,7 +5,6 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
 import { useWallet } from '../context/WalletContext';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PaymentModal } from './PaymentModal';
 import { SuccessModal } from './SuccessModal';
 import axios from 'axios';
@@ -18,7 +17,7 @@ const PRESALE_END_DATE = new Date('2026-03-31T23:59:59');
 const TOKENS_FOR_SALE = 400000000;
 
 export const TokenSale = () => {
-  const { isConnected, walletAddress, userStats } = useWallet();
+  const { isConnected, walletAddress, userStats, connectPhantom, connectSolflare } = useWallet();
   const [quantity, setQuantity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -181,8 +180,23 @@ export const TokenSale = () => {
                 <Wallet className="w-10 h-10 text-[#d4a853]" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h3>
-              <p className="text-gray-400 mb-6">Connect Phantom or MetaMask to view your stats and purchase tokens</p>
-              <WalletMultiButton className="!mx-auto" />
+              <p className="text-gray-400 mb-6">Connect Phantom or Solflare to view your stats and purchase tokens</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button 
+                  onClick={connectPhantom}
+                  className="h-12 px-6 font-bold bg-gradient-to-r from-[#AB9FF2] to-[#9945FF] hover:from-[#BDB4F5] hover:to-[#AB56FF] text-white rounded-xl transition-all"
+                >
+                  <Wallet className="w-5 h-5 mr-2" />
+                  Connect Phantom
+                </Button>
+                <Button 
+                  onClick={connectSolflare}
+                  className="h-12 px-6 font-bold bg-gradient-to-r from-[#FC8E00] to-[#FFA200] hover:from-[#FFB033] hover:to-[#FFB833] text-white rounded-xl transition-all"
+                >
+                  <Wallet className="w-5 h-5 mr-2" />
+                  Connect Solflare
+                </Button>
+              </div>
             </div>
           ) : (
             <div>
