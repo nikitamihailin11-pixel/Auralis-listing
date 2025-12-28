@@ -156,11 +156,11 @@ export const AdminPanel = ({ onBack }) => {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto" />
-              <p className="text-gray-400 mt-4">Загрузка...</p>
+              <p className="text-gray-400 mt-4">Loading...</p>
             </div>
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400">Ордеров не найдено</p>
+              <p className="text-gray-400">No orders found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
