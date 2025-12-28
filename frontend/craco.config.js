@@ -48,21 +48,8 @@ const webpackConfig = {
     },
     configure: (webpackConfig) => {
 
-      // Add polyfills for Node.js core modules (required for Solana wallet adapter)
-      webpackConfig.resolve.fallback = {
-        ...webpackConfig.resolve.fallback,
-        crypto: require.resolve('crypto-browserify'),
-        stream: require.resolve('stream-browserify'),
-        buffer: require.resolve('buffer'),
-      };
-
-      // Add plugins for Buffer global
-      const webpack = require('webpack');
-      webpackConfig.plugins.push(
-        new webpack.ProvidePlugin({
-          Buffer: ['buffer', 'Buffer'],
-        })
-      );
+      // Ignore source map warnings
+      webpackConfig.ignoreWarnings = [/Failed to parse source map/];
 
       // Add ignored patterns to reduce watched directories
         webpackConfig.watchOptions = {
