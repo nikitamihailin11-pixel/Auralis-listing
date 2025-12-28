@@ -297,6 +297,20 @@ def main():
     print("\n⚠️ Testing Error Handling...")
     tester.test_order_without_wallet()
     
+    # Test 8: Admin Endpoints
+    print("\n👑 Testing Admin Endpoints...")
+    all_orders = tester.test_get_all_orders()
+    
+    # Test order status update if we have an order
+    if order and order.get("id"):
+        print(f"\n🔄 Testing Order Status Updates...")
+        tester.test_update_order_status(order["id"], "confirmed")
+        tester.test_update_order_status(order["id"], "failed")
+        tester.test_update_order_status(order["id"], "pending")  # Reset to pending
+    
+    # Test updating nonexistent order
+    tester.test_update_nonexistent_order()
+    
     # Summary
     print("\n" + "=" * 50)
     print(f"📊 Test Summary: {tester.tests_passed}/{tester.tests_run} tests passed")
