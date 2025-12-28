@@ -1,0 +1,167 @@
+<analysis>
+**original_problem_statement:**
+The user wants to create a website for a project named Auralis, a decentralized platform on the Aptos blockchain. The initial goal is to build a landing page for the ARA token presale. Users should be able to purchase ARA tokens, and the purchase records are to be stored in a database for manual token distribution by the project owner.
+
+The project requirements evolved significantly through user requests:
+- **Initial Request:** A landing page with a cartoonish design (ref: ) to sell ARA tokens, with manual fulfillment.
+- **Evolved Requirements:**
+    - **Payment Integration:** The user cycled through several payment methods: Petra Wallet (Aptos), MetaMask (Solana), and finally settled on **Solana via Phantom Wallet**.
+    - **Payment Currency:** All payments should be in **USDT**.
+    - **Recipient Address:** The designated wallet for receiving payments is  on the **Solana network**.
+    - **UI/UX Features:**
+        - Countdown timer and progress bar for the token sale.
+        - A success modal confirming the purchase, stating tokens will be airdropped after the presale.
+        - A feature to display a user's purchase history (total ARA bought) after they connect their wallet.
+        - A link to a .
+    - **Admin Features:** A basic admin panel to view all purchase orders.
+    - **Design:** The user requested multiple complete redesigns, with the final direction being the Ethereal Future theme, using a specific avatar image they provided.
+    - **Language:** The final website must be entirely in **English**.
+
+**User's preferred language**: Русский (Russian). The next agent must respond in Russian for conversational parts but ensure all code, UI text, and comments are in English as per the user's latest request.
+
+**what currently exists?**
+A full-stack application with a FastAPI backend and a React frontend.
+- **Backend ():** An API is set up to handle token sale statistics, and to create and retrieve purchase orders from a MongoDB database. It has been partially updated to recognize 'solana' as a valid blockchain network.
+- **Frontend ():** The React application structure is in place with components for each section of the page (, , etc.) and context for wallet management. The agent was in the middle of a major refactor to implement a new design (Ethereal Future) and switch the payment logic to Solana/Phantom, so the UI is in an inconsistent, partially updated state.
+
+**Last working item**:
+- **Last item agent was working:** The agent was executing a major user request to completely overhaul the website. This included: 1) Implementing a brand new Ethereal Future design. 2) Ripping out all previous wallet integrations (MetaMask, Petra). 3) Integrating Solana payments via Phantom wallet. 4) Using a new avatar image provided by the user. The agent had just started this process by updating the backend  enum and creating new/overwriting some frontend files (, , ).
+- **Status:** IN PROGRESS
+- **Agent Testing Done:** N
+- **Which testing method agent to use?** both. A full end-to-end test is required after the refactor is complete to validate the new design and the Solana payment flow.
+- **User Testing Done:** N
+
+**All Pending/In progress Issue list**:
+There are no bugs in the traditional sense, but rather a large, multi-part task that is currently in progress and has left the application in a non-functional state.
+
+- **Issue 1: (P0) Application is in a broken, half-refactored state.**
+    - **Attempted fixes:** The agent started the refactor by updating backend models and some frontend components, but was interrupted before completing the work. This has led to inconsistencies between the backend expectations and frontend implementation, and a partially applied new design.
+    - **Next debug checklist:**
+        1.  Resume the implementation of the Ethereal Future design across all React components (, , , , , etc.) as defined in .
+        2.  Complete the refactor of , , and  to exclusively use the Solana Wallet Adapter for Phantom wallet connection and transactions.
+        3.  Ensure the frontend sends the transaction to the correct Solana address: .
+        4.  Remove all dead code related to MetaMask and Petra Wallet to clean up the codebase.
+    - **Why fix this issue and what will be achieved with the fix?** This will complete the user's latest and most critical request, making the application functional, visually aligned with their taste, and technically correct according to the new payment requirements.
+    - **Status:** IN PROGRESS
+    - **Is recurring issue?** Y (The user frequently requests major design/tech changes, leading to these large refactors).
+    - **Should Test frontend/backend/both after fix?** both
+    - **Blocked on other issue:** None.
+
+**In progress Task List**:
+- **Task 1: (P0) Complete the Ethereal Future Redesign**
+    - **Where to resume:** The agent has already updated  and . It needs to continue applying the new design (dark theme with blue/purple gradients) and the user-provided avatar to all remaining components: , , , , , , , and .
+    - **What will be achieved with this?** The website will have a consistent and complete UI that matches the user's latest aesthetic preference.
+    - **Status:** IN PROGRESS
+    - **Should Test frontend/backend/both after fix?** frontend
+    - **Blocked on something:** None.
+
+- **Task 2: (P0) Finalize Solana/Phantom Payment Integration**
+    - **Where to resume:**
+        - **Frontend:** Fully implement Solana transaction logic in  and , removing all code for  and Aptos wallets.
+        - **Backend:** Verify that the  endpoint correctly saves orders with the  field set to .
+    - **What will be achieved with this?** The core functionality of the website—allowing users to buy tokens via their Phantom wallet—will be implemented.
+    - **Status:** IN PROGRESS
+    - **Should Test frontend/backend/both after fix?** both
+    - **Blocked on something:** None.
+
+**Upcoming and Future Tasks**
+- **Upcoming Tasks:**
+  - **(P1) Display User-Specific Purchase Statistics:** After a user connects their wallet, create a UI element that shows how many ARA tokens they have already purchased and a message that the tokens will be distributed after the presale. This requires a new backend endpoint () and a new frontend component.
+- **Future Tasks:**
+  - **(P2) Admin Panel Authentication:** Secure the  route and its associated API endpoints with JWT authentication.
+  - **(P2) Email Notifications:** Integrate an email service (e.g., Resend, SendGrid) to send confirmation emails upon successful purchase.
+  - **(P2) Display Transaction Hash:** Show the Solana transaction hash in the  for user verification.
+
+**Completed work in this session**
+- A full-stack token sale application was built from scratch.
+- **Recently completed:**
+  - Multiple full-site redesigns were implemented based on iterative user feedback.
+  - A backend with FastAPI and MongoDB was created to manage orders and sale statistics.
+  - Features like a sales progress bar, countdown timer, and a basic admin panel were added.
+  - The application was fully translated to English after an initial multi-language setup.
+  - Several bugs were fixed and payment logic was refactored multiple times (Aptos -> Polygon -> Solana).
+
+**Earlier issues found/mentioned but not fixed**
+None. All prior issues were either resolved or made obsolete by subsequent, larger refactoring requests from the user.
+
+**Known issue recurrence from previous fork**
+- **Issue recurrence in previous fork:** N/A
+- **Recurrence count:** N/A
+- **Status:** N/A
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+- **Frontend:** React, Tailwind CSS, Solana Wallet Adapter (to be implemented)
+- **Backend:** FastAPI, Motor (async MongoDB driver), Pydantic
+- **Database:** MongoDB
+- **Architecture:** Standard client-server architecture.
+
+**key DB schema**
+- ** collection:** 
+
+**changes in tech stack**
+- The payment wallet integration has pivoted from Aptos (Petra) and EVM (MetaMask) to exclusively **Solana (Phantom)**.
+
+**All files of reference**
+- : The single source of truth for all backend logic.
+- : Needs to be refactored for Solana-only logic.
+- : The main user interaction component for purchasing tokens.
+- : Must be rewritten to handle Solana transactions.
+- : The main landing view, needs the new design.
+- : Contains the Ethereal Future design spec to be implemented.
+- : Contains MongoDB credentials for the user.
+
+**Areas that need refactoring**:
+- ** and :** These files contain significant dead code and commented-out logic from the previous MetaMask and Petra integrations. This should be removed to simplify the codebase to a Solana-only implementation.
+- **:** Since the user has decided on English only, this context and its provider can be simplified or removed to reduce complexity.
+
+**key api endpoints**
+- : Creates a purchase order.
+- : Retrieves global token sale stats.
+- : (Admin) Retrieves all orders.
+- : (Admin) Updates an order's status.
+
+**Critical Info for New Agent**
+- The user's most recent and highest-priority request is a complete pivot: **Solana-only payments via Phantom Wallet**, sending funds to , and a full redesign to the Ethereal Future theme using the avatar they provided.
+- **Ignore all previous payment integrations.** Code for MetaMask/ and Petra/Aptos is now obsolete and should be removed.
+- The user also wants to see their personal purchase history after connecting their wallet. This is a new feature to be built.
+- Be prepared for further major changes to design or functionality, as this has been a pattern throughout the interaction.
+
+**documents and test reports created in this job**
+- 
+- 
+- 
+- 
+- 
+
+**Last 10 User Messages and any pending HUMAN messages**
+1. **User (Message #233):** Requested a major change: use Solana/Phantom wallet for payments to address , show user purchase stats, and completely redesign the site. **Status: IN PROGRESS.**
+2. **User (Message #242):** Confirmed the redesign request and provided a specific avatar image to use for the new design. **Status: IN PROGRESS.**
+3. **User (Message #243):** Excellent! Use this character. Quickly finish all the changes. **Status: PENDING. This is the last user message, urging the agent to complete the ongoing refactor.**
+
+**Project Health Check:**
+- **Broken:** The application is currently non-functional due to being in the middle of a major technical and visual refactor.
+- **Mocked:** N/A.
+
+**3rd Party Integrations**
+- **MongoDB:** Used as the primary database.
+- **Solana Wallet Adapter:** To be integrated for Phantom wallet connectivity on the frontend.
+
+**Testing status**
+- **Testing agent used after significant changes:** YES (but not since the latest refactor started).
+- **Troubleshoot agent used after agent stuck in loop:** NO.
+- **Test files created:** None.
+- **Known regressions:** The entire payment functionality is currently broken due to the ongoing refactor.
+
+**Credentials to test flow:**
+- **MongoDB:** Credentials are in .
+- **Solana Payment:** Testing requires a browser with the Phantom wallet extension. Transactions should be directed to the user-provided address: .
+
+**What agent forgot to execute**
+The agent did not forget but was interrupted while performing the user's latest, most significant request. The following parts of that request are incomplete:
+- The full Ethereal Future design has only been applied to a few components.
+- The Solana/Phantom payment logic is only partially implemented.
+- The feature to display user-specific purchase statistics has not been started.
+</analysis>

@@ -92,7 +92,7 @@ total_ara_sold = await db.orders.aggregate([
 ## Admin Panel Access
 
 Access the built-in admin panel at:
-- URL: https://auralis-app.preview.emergentagent.com
+- URL: https://defi-presale-2.preview.emergentagent.com
 - Click the Settings icon (⚙️) in the bottom-left corner
 - No authentication required (add authentication in production!)
 
@@ -100,24 +100,24 @@ Access the built-in admin panel at:
 
 ### Get All Orders
 ```bash
-curl -X GET https://auralis-app.preview.emergentagent.com/api/orders/all
+curl -X GET https://defi-presale-2.preview.emergentagent.com/api/orders/all
 ```
 
 ### Get Wallet Orders
 ```bash
-curl -X GET https://auralis-app.preview.emergentagent.com/api/orders/wallet/{wallet_address}
+curl -X GET https://defi-presale-2.preview.emergentagent.com/api/orders/wallet/{wallet_address}
 ```
 
 ### Update Order Status
 ```bash
-curl -X PUT https://auralis-app.preview.emergentagent.com/api/orders/{order_id}/status \
+curl -X PUT https://defi-presale-2.preview.emergentagent.com/api/orders/{order_id}/status \
   -H "Content-Type: application/json" \
   -d '{"status": "confirmed"}'
 ```
 
 ### Get Statistics
 ```bash
-curl -X GET https://auralis-app.preview.emergentagent.com/api/stats
+curl -X GET https://defi-presale-2.preview.emergentagent.com/api/stats
 ```
 
 ## Export Data
