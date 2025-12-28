@@ -258,7 +258,7 @@ export function WalletProvider({ children }) {
     connectAptos,
     disconnectMetamask,
     disconnectAptos,
-    sendPolygonPayment,
+    sendPolygonUSDT,
     sendUSDTPayment,
   };
 
