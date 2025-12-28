@@ -71,13 +71,13 @@ export const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
           {/* Info Box */}
           <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-4 mb-6">
             <p className="text-sm text-gray-300">
-              💎 Ваши <span className="font-bold text-white">{orderDetails?.quantity?.toLocaleString()} ARA токенов</span> будут автоматически начислены на ваш кошелек:
+              💎 Your <span className="font-bold text-white">{orderDetails?.quantity?.toLocaleString()} ARA tokens</span> will be automatically credited to your wallet:
             </p>
             <code className="block text-xs text-purple-300 font-mono mt-2 break-all">
               {orderDetails?.walletAddress || ''}
             </code>
             <p className="text-xs text-gray-400 mt-3">
-              📅 Ожидаемая дата: <span className="font-semibold">Апрель-Июнь 2026</span>
+              📅 Expected date: <span className="font-semibold">April-June 2026</span>
             </p>
           </div>
 
