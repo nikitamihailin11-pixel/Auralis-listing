@@ -83,7 +83,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">Confirm Payment</h2>
-            <p className="text-gray-400">Pay with {paymentCurrency} on {paymentNetwork}</p>
+            <p className="text-gray-400">Pay with USDT</p>
           </div>
 
           {/* Order Details */}
@@ -97,14 +97,10 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
                 <span className="text-gray-400">Price per token:</span>
                 <span className="font-semibold text-white">${orderDetails.pricePerToken}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Network:</span>
-                <span className="font-semibold text-white">{paymentNetwork}</span>
-              </div>
               <div className="border-t border-white/10 pt-3 flex justify-between">
                 <span className="font-bold text-white">Total to Pay:</span>
-                <span className="font-bold text-2xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  ${orderDetails.totalAmount} {paymentCurrency}
+                <span className="font-bold text-2xl bg-gradient-to-r from-[#CCFF00] to-[#00F0FF] bg-clip-text text-transparent">
+                  ${orderDetails.totalAmount} USDT
                 </span>
               </div>
             </div>
