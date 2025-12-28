@@ -1,108 +1,134 @@
 {
   "identity": {
     "name": "Auralis",
-    "tagline": "Defy Gravity. Own the Void.",
-    "tone": "Futuristic, Rebellious, Playful, High-Voltage",
-    "archetype": "Electric & Neon (The 'Cyber-Organic' Twist)",
-    "description": "A decentralized platform on Aptos combining messenger, social network, NFT economy and 3D game."
+    "archetype": "Ethereal Future",
+    "vibe": "Deep Space, Bioluminescence, Premium Glass",
+    "core_philosophy": "Fusion of organic light (Aurora) with rigid tech (Blockchain). Trustworthy but magical."
   },
   "typography": {
-    "primary_font": "Outfit",
-    "secondary_font": "Manrope",
-    "h1": "font-outfit font-black text-6xl md:text-8xl tracking-tighter uppercase leading-[0.9]",
-    "h2": "font-outfit font-bold text-4xl md:text-6xl tracking-tight uppercase",
-    "h3": "font-outfit font-bold text-2xl md:text-3xl tracking-tight",
-    "body": "font-manrope text-base md:text-lg text-muted-foreground leading-relaxed",
-    "label": "font-manrope font-bold text-xs tracking-[0.2em] uppercase text-accent",
-    "mono": "font-mono text-sm tracking-wider"
-  },
-  "colors": {
-    "background": "#050505",
-    "foreground": "#F0F0F0",
-    "card": "#0A0A0A",
-    "card_foreground": "#FFFFFF",
-    "primary": "#CCFF00",
-    "primary_foreground": "#000000",
-    "secondary": "#00F0FF",
-    "secondary_foreground": "#000000",
-    "accent": "#FF4D00",
-    "accent_foreground": "#FFFFFF",
-    "muted": "#1A1A1A",
-    "muted_foreground": "#888888",
-    "border": "#222222",
-    "input": "#111111",
-    "ring": "#CCFF00"
-  },
-  "visual_enhancers": {
-    "glassmorphism": "bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
-    "neon_glow": "shadow-[0_0_20px_rgba(204,255,0,0.3)]",
-    "gradient_text": "bg-clip-text text-transparent bg-gradient-to-r from-[#CCFF00] to-[#00F0FF]",
-    "noise_texture": "url('https://images.unsplash.com/photo-1764263996369-141150443ebf?crop=entropy&cs=srgb&fm=jpg&q=85')",
-    "border_beam": "absolute inset-0 rounded-xl border border-transparent [mask-image:linear-gradient(white,white)] before:absolute before:inset-0 before:bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] before:animate-rotate"
-  },
-  "layout_strategy": {
-    "container": "max-w-7xl mx-auto px-6 md:px-12",
-    "section_spacing": "py-24 md:py-32",
-    "grid_features": "grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-8",
-    "grid_bento": "grid grid-cols-1 md:grid-cols-3 gap-6"
-  },
-  "components": {
-    "Hero": {
-      "structure": "Centered 'Explosion' layout. Massive typography behind a floating 3D avatar.",
-      "elements": [
-        "H1: 'AURALIS' (Massive, behind image)",
-        "Image: Floating 3D Astronaut (Z-Index 10)",
-        "CTA: 'Join Presale' (Acid Green Pill Button)",
-        "Stats: Floating glass cards with 'Total Raised' and 'Holders'"
-      ]
+    "font_family": {
+      "heading": "Outfit, sans-serif",
+      "body": "Manrope, sans-serif",
+      "mono": "JetBrains Mono, monospace"
     },
-    "PresaleCard": {
-      "structure": "Glassmorphic panel, floating, high contrast inputs.",
-      "style": "bg-black/60 backdrop-blur-2xl border border-[#CCFF00]/30 shadow-[0_0_40px_rgba(204,255,0,0.1)]",
-      "features": ["Countdown Timer (Mono font)", "Progress Bar (Striped animation)", "USDT/ARA Input Fields"]
-    },
-    "Features": {
-      "structure": "Tetris Grid (Bento Mode A).",
-      "cards": "Dark cards with hover glow effects. Icons in Acid Green."
-    },
-    "Tokenomics": {
-      "structure": "Donut Chart (Recharts) with glowing segments.",
-      "legend": "Grid layout with color-coded indicators."
-    },
-    "Roadmap": {
-      "structure": "Vertical timeline with glowing nodes. 'Current Phase' pulsing."
+    "usage_rules": {
+      "headings": "Use Outfit. Weights: Light (300) for massive hero text, Bold (700) for section titles. Letter-spacing: tracking-tight (-0.02em).",
+      "body": "Use Manrope. Weights: Regular (400) for text, Medium (500) for UI labels. Line-height: leading-relaxed.",
+      "numbers": "Use Outfit or Manrope with tabular-nums for countdowns and stats."
     }
   },
-  "image_urls": {
-    "hero_avatar": "https://images.unsplash.com/photo-1564035355568-a1ecb8f31982?crop=entropy&cs=srgb&fm=jpg&q=85",
-    "feature_avatars": [
-      "https://images.unsplash.com/photo-1620428268482-cf1851a36764?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "https://images.unsplash.com/photo-1678392495605-30ca2b145190?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "https://images.unsplash.com/photo-1694619100998-3b5ae167399c?crop=entropy&cs=srgb&fm=jpg&q=85"
-    ],
-    "background_texture": "https://images.unsplash.com/photo-1764263996369-141150443ebf?crop=entropy&cs=srgb&fm=jpg&q=85",
-    "abstract_shapes": [
-      "https://images.unsplash.com/photo-1765410856020-d09abb26dcbe?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "https://images.unsplash.com/photo-1765445774011-7836c57d4be3?crop=entropy&cs=srgb&fm=jpg&q=85"
-    ]
+  "colors": {
+    "palette": {
+      "background": {
+        "default": "#020617",
+        "paper": "#0F172A",
+        "subtle": "#1E293B"
+      },
+      "primary": {
+        "DEFAULT": "#7C3AED",
+        "foreground": "#FFFFFF",
+        "glow": "rgba(124, 58, 237, 0.5)"
+      },
+      "secondary": {
+        "DEFAULT": "#06B6D4",
+        "foreground": "#FFFFFF",
+        "glow": "rgba(6, 182, 212, 0.5)"
+      },
+      "accent": {
+        "DEFAULT": "#F472B6",
+        "foreground": "#FFFFFF"
+      },
+      "neutral": {
+        "50": "#F8FAFC",
+        "100": "#F1F5F9",
+        "200": "#E2E8F0",
+        "300": "#CBD5E1",
+        "400": "#94A3B8",
+        "500": "#64748B",
+        "600": "#475569",
+        "700": "#334155",
+        "800": "#1E293B",
+        "900": "#0F172A",
+        "950": "#020617"
+      }
+    },
+    "gradients": {
+      "aurora": "bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500",
+      "glass": "bg-slate-900/40 backdrop-blur-xl border border-white/10",
+      "card_hover": "hover:bg-slate-800/50 hover:border-violet-500/30 transition-all duration-300"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "heavy": "backdrop-blur-2xl bg-slate-950/70 border border-white/10 shadow-2xl",
+      "light": "backdrop-blur-md bg-white/5 border border-white/5"
+    },
+    "shadows": {
+      "glow": "0 0 40px -10px rgba(124, 58, 237, 0.3)",
+      "neon": "0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3)"
+    },
+    "borders": {
+      "subtle": "border border-white/5",
+      "active": "border border-violet-500/50"
+    }
+  },
+  "layout_strategies": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "spacing": {
+      "section": "py-24 lg:py-32",
+      "element": "gap-8"
+    },
+    "grids": {
+      "features": "grid grid-cols-1 md:grid-cols-3 gap-8",
+      "bento": "grid grid-cols-1 md:grid-cols-6 gap-6"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-4 px-8 rounded-full shadow-[0_0_20px_rgba(124,58,237,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(124,58,237,0.6)]",
+      "secondary": "bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-3 px-6 rounded-full backdrop-blur-sm transition-all",
+      "ghost": "text-slate-300 hover:text-white hover:bg-white/5 py-2 px-4 rounded-lg transition-colors"
+    },
+    "cards": {
+      "feature": "group relative p-8 rounded-2xl bg-slate-900/40 border border-white/5 hover:border-violet-500/30 transition-all duration-500 overflow-hidden",
+      "presale": "p-8 rounded-3xl bg-slate-950/80 border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden"
+    },
+    "inputs": {
+      "default": "bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all outline-none"
+    }
+  },
+  "assets": {
+    "images": {
+      "hero_bg": "https://images.pexels.com/photos/8347501/pexels-photo-8347501.jpeg",
+      "tech_bg": "https://images.pexels.com/photos/30547584/pexels-photo-30547584.jpeg",
+      "token_icon": "https://images.pexels.com/photos/12198525/pexels-photo-12198525.jpeg"
+    },
+    "icons": "Use Lucide React icons. Stroke width: 1.5px for elegance."
+  },
+  "motion": {
+    "transitions": "transition-all duration-300 ease-out",
+    "animations": {
+      "float": "animate-float",
+      "pulse_slow": "animate-pulse-slow",
+      "shimmer": "animate-shimmer"
+    }
   },
   "instructions_to_main_agent": [
-    "1. IMPLEMENT THE 'NEON VOID' THEME: Override the default shadcn/ui colors in 'index.css' with the provided palette. NO PURPLE/PINK GRADIENTS.",
-    "2. USE 'OUTFIT' FOR HEADINGS: Ensure 'Outfit' font is applied to all headings with tight tracking.",
-    "3. CREATE THE 'PRESALE CARD': This is the most important component. Make it look like a futuristic HUD (Heads-Up Display). Use the 'glassmorphism' classes provided.",
-    "4. ANIMATIONS: Use 'framer-motion' for entrance animations. The 3D avatar in the hero MUST float (animate y-position).",
-    "5. IMAGES: Use the provided Unsplash URLs. Do not use placeholders.",
-    "6. COUNTDOWN: Build a custom countdown timer that looks like a digital clock.",
-    "7. PROGRESS BAR: Custom style the shadcn Progress component to be thicker and have a striped/animated background.",
-    "8. DATA-TESTID: Add 'data-testid' to all interactive elements (buttons, inputs, wallet connect)."
+    "1. DESTROY the old 'Neon Void' theme. Remove all references to lime green (#CCFF00) and pure black backgrounds.",
+    "2. IMPLEMENT the 'Ethereal Future' theme: Deep Slate/Navy backgrounds with Violet/Cyan gradients.",
+    "3. USE the provided image URLs for backgrounds. Apply 'mix-blend-overlay' or low opacity to blend them into the dark background.",
+    "4. REWRITE tailwind.config.js to match the new color palette.",
+    "5. UPDATE App.css/index.css to remove old utility classes and add new glassmorphism utilities.",
+    "6. REDESIGN the TokenSale component to look like a high-end glass card, not a basic box.",
+    "7. ENSURE the 'Connect Wallet' button is the most prominent element.",
+    "8. USE 'Outfit' font for all headings and 'Manrope' for body text.",
+    "9. ADD 'data-testid' to all interactive elements."
   ],
   "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
-    "Avoid 'AI slop' aesthetic (generic centered layouts, smooth gradients).",
-    "Use 2-3x more spacing than usual (p-12, p-24).",
-    "Dark colors must be DEEP (almost black), not grey.",
-    "Interactive elements must have clear hover states (text color change, scale, glow).",
-    "Use 'sonner' for toasts.",
-    "Components must use named exports.",
-    "Pages must use default exports."
+    "Do not use generic centered layouts. Use asymmetry.",
+    "Use 2-3x more spacing than typical designs.",
+    "Every interaction needs micro-animations.",
+    "Never use pure black (#000000) or pure white (#FFFFFF) for backgrounds. Tint them.",
+    "Use 'sonner' for toasts."
   ]
 }
