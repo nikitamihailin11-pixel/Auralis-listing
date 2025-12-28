@@ -43,6 +43,49 @@ export const TokenSale = () => {
   const currentBalance = selectedWallet === 'metamask' ? metamaskBalance : aptosBalance;
   const isConnected = selectedWallet === 'metamask' ? isMetamaskConnected : isAptosConnected;
   const totalCost = quantity ? (parseFloat(quantity) * ARA_PRICE).toFixed(2) : '0.00';
+  
+  const soldPercentage = (stats.total_ara_sold / TOKENS_FOR_SALE) * 100;
+
+  // Countdown Timer Effect
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const difference = PRESALE_END_DATE - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Fetch Stats Effect
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get(`${API}/stats`);
+        setStats(response.data);
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      }
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000); // Update every 30s
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handlePurchase = async () => {
     if (!currentAddress) {
