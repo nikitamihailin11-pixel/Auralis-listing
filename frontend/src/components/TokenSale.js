@@ -33,9 +33,9 @@ export const TokenSale = () => {
   const [stats, setStats] = useState({ total_ara_sold: 0 });
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
-  const currentAddress = selectedWallet === 'metamask' ? metamaskAccount : aptosAccount;
-  const currentBalance = selectedWallet === 'metamask' ? metamaskBalance : aptosBalance;
-  const isConnected = selectedWallet === 'metamask' ? isMetamaskConnected : isAptosConnected;
+  const currentAddress = aptosAccount;
+  const currentBalance = aptosBalance;
+  const isConnected = isAptosConnected;
   const totalCost = quantity ? (parseFloat(quantity) * ARA_PRICE).toFixed(2) : '0.00';
   
   const soldPercentage = (stats.total_ara_sold / TOKENS_FOR_SALE) * 100;
