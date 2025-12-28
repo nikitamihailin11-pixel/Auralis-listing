@@ -19,15 +19,9 @@ const TOKENS_FOR_SALE = 400000000; // 40% for community
 
 export const TokenSale = () => {
   const {
-    metamaskAccount,
-    metamaskBalance,
     aptosAccount,
     aptosBalance,
-    isMetamaskConnected,
     isAptosConnected,
-    selectedWallet,
-    setSelectedWallet,
-    connectMetamask,
     connectAptos,
   } = useWallet();
 
