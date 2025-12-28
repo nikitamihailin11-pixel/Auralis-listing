@@ -194,6 +194,67 @@ class AuralisAPITester:
             self.log_test("Order Without Wallet (Expected Failure)", False, str(e))
             return False
 
+    def test_get_all_orders(self):
+        """Test get all orders endpoint (admin)"""
+        try:
+            response = requests.get(f"{self.api_url}/orders/all", timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_test("Get All Orders (Admin)", True)
+                    return data
+                else:
+                    self.log_test("Get All Orders (Admin)", False, f"Expected list, got: {type(data)}")
+                    return None
+            else:
+                self.log_test("Get All Orders (Admin)", False, f"Status: {response.status_code}")
+                return None
+        except Exception as e:
+            self.log_test("Get All Orders (Admin)", False, str(e))
+            return None
+
+    def test_update_order_status(self, order_id, new_status):
+        """Test update order status endpoint (admin)"""
+        try:
+            payload = {"status": new_status}
+            response = requests.put(f"{self.api_url}/orders/{order_id}/status", json=payload, timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                if data.get("status") == new_status:
+                    self.log_test(f"Update Order Status to {new_status}", True)
+                    return data
+                else:
+                    self.log_test(f"Update Order Status to {new_status}", False, f"Status not updated: {data}")
+                    return None
+            else:
+                self.log_test(f"Update Order Status to {new_status}", False, f"Status: {response.status_code}, Response: {response.text}")
+                return None
+        except Exception as e:
+            self.log_test(f"Update Order Status to {new_status}", False, str(e))
+            return None
+
+    def test_update_nonexistent_order(self):
+        """Test updating nonexistent order (should fail)"""
+        try:
+            fake_order_id = "507f1f77bcf86cd799439011"  # Valid ObjectId format but nonexistent
+            payload = {"status": "confirmed"}
+            response = requests.put(f"{self.api_url}/orders/{fake_order_id}/status", json=payload, timeout=10)
+            success = response.status_code == 404  # Should fail with 404
+            
+            if success:
+                self.log_test("Update Nonexistent Order (Expected Failure)", True)
+                return True
+            else:
+                self.log_test("Update Nonexistent Order (Expected Failure)", False, f"Expected 404, got: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Update Nonexistent Order (Expected Failure)", False, str(e))
+            return False
+
 def main():
     print("🚀 Starting Auralis API Testing...")
     print("=" * 50)
