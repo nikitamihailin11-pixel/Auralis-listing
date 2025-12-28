@@ -255,18 +255,145 @@ class AuralisAPITester:
             self.log_test("Update Nonexistent Order (Expected Failure)", False, str(e))
             return False
 
+def test_specific_purchase_flow(tester):
+    """Test the specific Auralis token purchase flow as requested"""
+    print("\n🎯 Testing Specific Purchase Flow (Review Request)...")
+    print("=" * 60)
+    
+    # Step 1: Connect wallet with specific address
+    print("\n1️⃣ Connecting test wallet...")
+    test_wallet_address = "0xTestMetaMask123"
+    
+    payload = {
+        "address": test_wallet_address,
+        "blockchain": "solana",
+        "balance": 0
+    }
+    
+    try:
+        response = requests.post(f"{tester.api_url}/wallets/connect", json=payload, timeout=10)
+        if response.status_code == 201:
+            wallet_data = response.json()
+            tester.log_test("Step 1: Connect Wallet", True, f"Wallet connected: {wallet_data['address']}")
+        else:
+            tester.log_test("Step 1: Connect Wallet", False, f"Status: {response.status_code}, Response: {response.text}")
+            return False
+    except Exception as e:
+        tester.log_test("Step 1: Connect Wallet", False, str(e))
+        return False
+    
+    # Step 2: Create order with specific parameters
+    print("\n2️⃣ Creating order...")
+    order_payload = {
+        "wallet_address": test_wallet_address,
+        "blockchain": "solana",
+        "quantity": 5000,
+        "price_per_token": 0.01
+    }
+    
+    try:
+        response = requests.post(f"{tester.api_url}/orders/create", json=order_payload, timeout=10)
+        if response.status_code == 201:
+            order_data = response.json()
+            order_id = order_data.get("id")
+            expected_total = 5000 * 0.01
+            if order_data.get("total_amount") == expected_total:
+                tester.log_test("Step 2: Create Order", True, f"Order created: {order_id}, Total: ${expected_total}")
+            else:
+                tester.log_test("Step 2: Create Order", False, f"Incorrect total amount: {order_data.get('total_amount')}")
+                return False
+        else:
+            tester.log_test("Step 2: Create Order", False, f"Status: {response.status_code}, Response: {response.text}")
+            return False
+    except Exception as e:
+        tester.log_test("Step 2: Create Order", False, str(e))
+        return False
+    
+    # Step 3: Confirm order status
+    print("\n3️⃣ Confirming order...")
+    status_payload = {"status": "confirmed"}
+    
+    try:
+        response = requests.put(f"{tester.api_url}/orders/{order_id}/status", json=status_payload, timeout=10)
+        if response.status_code == 200:
+            status_data = response.json()
+            if status_data.get("status") == "confirmed":
+                tester.log_test("Step 3: Confirm Order", True, f"Order confirmed: {order_id}")
+            else:
+                tester.log_test("Step 3: Confirm Order", False, f"Status not confirmed: {status_data}")
+                return False
+        else:
+            tester.log_test("Step 3: Confirm Order", False, f"Status: {response.status_code}, Response: {response.text}")
+            return False
+    except Exception as e:
+        tester.log_test("Step 3: Confirm Order", False, str(e))
+        return False
+    
+    # Step 4: Verify order appears with confirmed status
+    print("\n4️⃣ Verifying order status...")
+    try:
+        response = requests.get(f"{tester.api_url}/orders/wallet/{test_wallet_address}", timeout=10)
+        if response.status_code == 200:
+            orders = response.json()
+            confirmed_order = None
+            for order in orders:
+                if order.get("id") == order_id and order.get("status") == "confirmed":
+                    confirmed_order = order
+                    break
+            
+            if confirmed_order:
+                tester.log_test("Step 4: Verify Order Status", True, f"Order found with confirmed status: {order_id}")
+            else:
+                tester.log_test("Step 4: Verify Order Status", False, f"Order not found or not confirmed. Orders: {orders}")
+                return False
+        else:
+            tester.log_test("Step 4: Verify Order Status", False, f"Status: {response.status_code}")
+            return False
+    except Exception as e:
+        tester.log_test("Step 4: Verify Order Status", False, str(e))
+        return False
+    
+    # Step 5: Verify stats updated
+    print("\n5️⃣ Verifying stats updated...")
+    try:
+        response = requests.get(f"{tester.api_url}/stats", timeout=10)
+        if response.status_code == 200:
+            stats = response.json()
+            total_ara_sold = stats.get("total_ara_sold", 0)
+            if total_ara_sold >= 5000:  # Should include our 5000 tokens
+                tester.log_test("Step 5: Verify Stats", True, f"Stats updated - Total ARA sold: {total_ara_sold}")
+            else:
+                tester.log_test("Step 5: Verify Stats", False, f"Stats not updated correctly - Total ARA sold: {total_ara_sold}")
+                return False
+        else:
+            tester.log_test("Step 5: Verify Stats", False, f"Status: {response.status_code}")
+            return False
+    except Exception as e:
+        tester.log_test("Step 5: Verify Stats", False, str(e))
+        return False
+    
+    print("\n✅ Purchase flow test completed successfully!")
+    return True
+
 def main():
     print("🚀 Starting Auralis API Testing...")
     print("=" * 50)
     
     tester = AuralisAPITester()
     
+    # Test the specific purchase flow first (as requested in review)
+    flow_success = test_specific_purchase_flow(tester)
+    
+    # Run additional comprehensive tests
+    print("\n\n🔧 Running Additional Comprehensive Tests...")
+    print("=" * 50)
+    
     # Test 1: API Root
     print("\n📡 Testing API Root...")
     root_data = tester.test_api_root()
     
-    # Test 2: Wallet Connections (using review request requirements)
-    print("\n💰 Testing Wallet Connections...")
+    # Test 2: Wallet Connections (additional test)
+    print("\n💰 Testing Additional Wallet Connections...")
     test_wallet_address = "TestWallet123"
     
     wallet = tester.test_wallet_connection(test_wallet_address, "solana")
@@ -276,8 +403,8 @@ def main():
     if wallet:
         tester.test_get_wallet(test_wallet_address)
     
-    # Test 4: Create Orders (as per review request)
-    print("\n📝 Testing Order Creation...")
+    # Test 4: Create Orders (additional test)
+    print("\n📝 Testing Additional Order Creation...")
     order = None
     if wallet:
         order = tester.test_create_order(test_wallet_address, "solana", 100)
