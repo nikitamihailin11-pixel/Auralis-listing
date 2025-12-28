@@ -362,6 +362,21 @@ export const TokenSale = () => {
             </p>
           </Card>
         </motion.div>
+
+        {/* Payment Modal */}
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          orderDetails={pendingOrder || {}}
+          onConfirmPayment={handleConfirmPayment}
+        />
+
+        {/* Success Modal */}
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={handleCloseSuccess}
+          orderDetails={pendingOrder || {}}
+        />
       </div>
     </div>
   );
