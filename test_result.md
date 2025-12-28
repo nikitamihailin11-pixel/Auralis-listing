@@ -66,11 +66,14 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "GET /api/orders/wallet/{wallet_address} returns orders for specific wallet"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Get wallet orders working perfectly. Successfully retrieved orders for wallet '0xTestMetaMask123' and verified the confirmed order appears in the list with correct status. Returns proper array of order objects with all required fields."
 
 frontend:
   - task: "Hero section with wallet connect buttons"
