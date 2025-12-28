@@ -132,10 +132,10 @@ export const AdminPanel = ({ onBack }) => {
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6">
           {[
-            { value: 'all', label: 'Все' },
-            { value: 'pending', label: 'Ожидают' },
-            { value: 'confirmed', label: 'Подтверждены' },
-            { value: 'failed', label: 'Отклонены' },
+            { value: 'all', label: 'All' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'confirmed', label: 'Confirmed' },
+            { value: 'failed', label: 'Failed' },
           ].map((tab) => (
             <Button
               key={tab.value}
