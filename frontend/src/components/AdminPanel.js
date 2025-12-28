@@ -111,19 +111,19 @@ export const AdminPanel = ({ onBack }) => {
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20 p-6">
-              <div className="text-sm text-gray-400 mb-1">Всего ордеров</div>
+              <div className="text-sm text-gray-400 mb-1">Total Orders</div>
               <div className="text-3xl font-bold text-white">{stats.total_orders}</div>
             </Card>
             <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20 p-6">
-              <div className="text-sm text-gray-400 mb-1">Продано ARA</div>
+              <div className="text-sm text-gray-400 mb-1">ARA Sold</div>
               <div className="text-3xl font-bold text-white">{stats.total_ara_sold.toLocaleString()}</div>
             </Card>
             <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20 p-6">
-              <div className="text-sm text-gray-400 mb-1">Кошельков</div>
+              <div className="text-sm text-gray-400 mb-1">Wallets</div>
               <div className="text-3xl font-bold text-white">{stats.total_wallets}</div>
             </Card>
             <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20 p-6">
-              <div className="text-sm text-gray-400 mb-1">Цена ARA</div>
+              <div className="text-sm text-gray-400 mb-1">ARA Price</div>
               <div className="text-3xl font-bold text-white">${stats.ara_price}</div>
             </Card>
           </div>
