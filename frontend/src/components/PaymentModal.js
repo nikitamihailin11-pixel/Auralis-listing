@@ -7,7 +7,7 @@ import { useWallet } from '../context/WalletContext';
 
 export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }) => {
   const [isPaying, setIsPaying] = useState(false);
-  const { selectedWallet, sendPolygonPayment, sendUSDTPayment } = useWallet();
+  const { selectedWallet, sendPolygonUSDT, sendUSDTPayment } = useWallet();
 
   const handlePayment = async () => {
     setIsPaying(true);
@@ -16,7 +16,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
       let response;
       
       if (selectedWallet === 'metamask') {
-        response = await sendPolygonPayment(orderDetails.totalAmount);
+        response = await sendPolygonUSDT(orderDetails.totalAmount);
       } else {
         response = await sendUSDTPayment(orderDetails.totalAmount);
       }
@@ -39,7 +39,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
         if (error.message.includes('User rejected')) {
           errorMessage = 'Transaction was rejected';
         } else if (error.message.includes('Insufficient')) {
-          errorMessage = 'Insufficient balance';
+          errorMessage = 'Insufficient USDT balance';
         } else {
           errorMessage = error.message;
         }
@@ -52,9 +52,6 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
   };
 
   if (!isOpen) return null;
-
-  const paymentNetwork = selectedWallet === 'metamask' ? 'Polygon (POL)' : 'Aptos (USDT)';
-  const paymentCurrency = selectedWallet === 'metamask' ? 'MATIC' : 'USDT';
 
   return (
     <AnimatePresence>
