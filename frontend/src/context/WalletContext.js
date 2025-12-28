@@ -1,43 +1,35 @@
-import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
-import { ConnectionProvider, WalletProvider as SolanaWalletProvider, useWallet as useSolanaWallet, useConnection } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import '@solana/wallet-adapter-react-ui/styles.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const SOLANA_PAYMENT_ADDRESS = 'C8G8Wir2RBNW5bwwrtS4wcpapKqw5abNMXdVjQSGsS21';
-const SOLANA_NETWORK = 'mainnet-beta';
 
 const WalletContext = createContext();
 
-// Inner provider that uses Solana wallet hooks
-function WalletContextProvider({ children }) {
-  const { connection } = useConnection();
-  const { publicKey, connected, wallet, sendTransaction, disconnect } = useSolanaWallet();
+export function WalletProvider({ children }) {
+  const [walletAddress, setWalletAddress] = useState(null);
+  const [walletType, setWalletType] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [solBalance, setSolBalance] = useState(null);
   const [userOrders, setUserOrders] = useState([]);
   const [userStats, setUserStats] = useState({ totalTokens: 0, totalSpent: 0 });
-  const [solBalance, setSolBalance] = useState(null);
 
-  const walletAddress = publicKey?.toString() || null;
-  const walletType = wallet?.adapter?.name || null;
+  // Check if Phantom is available
+  const getPhantom = () => {
+    if (typeof window !== 'undefined' && window.solana?.isPhantom) {
+      return window.solana;
+    }
+    return null;
+  };
 
-  // Fetch SOL balance
-  const fetchBalance = useCallback(async () => {
-    if (!publicKey || !connection) {
-      setSolBalance(null);
-      return;
+  // Check if Solflare (MetaMask Snap for Solana) is available
+  const getSolflare = () => {
+    if (typeof window !== 'undefined' && window.solflare?.isSolflare) {
+      return window.solflare;
     }
-    try {
-      const balance = await connection.getBalance(publicKey);
-      setSolBalance((balance / LAMPORTS_PER_SOL).toFixed(4));
-    } catch (error) {
-      console.error('Failed to fetch balance:', error);
-      setSolBalance(null);
-    }
-  }, [publicKey, connection]);
+    return null;
+  };
 
   // Fetch user orders from backend
   const fetchUserOrders = useCallback(async (address) => {
@@ -52,77 +44,135 @@ function WalletContextProvider({ children }) {
     }
   }, []);
 
-  // Save wallet to backend on connect
-  const saveWalletToBackend = useCallback(async () => {
-    if (!walletAddress) return;
+  // Save wallet to backend
+  const saveWalletToBackend = useCallback(async (address) => {
     try {
       await axios.post(`${API}/wallets/connect`, {
-        address: walletAddress,
+        address: address,
         blockchain: 'solana',
-        balance: parseFloat(solBalance) || 0
+        balance: 0
       });
     } catch (error) {
       console.error('Failed to save wallet to backend:', error);
     }
-  }, [walletAddress, solBalance]);
+  }, []);
 
-  // Send SOL payment (USDT equivalent - using SOL for now)
-  const sendPayment = useCallback(async (amountUSD) => {
-    if (!publicKey || !connection) {
-      throw new Error('Wallet not connected');
+  // Connect Phantom wallet
+  const connectPhantom = async () => {
+    const phantom = getPhantom();
+    if (!phantom) {
+      window.open('https://phantom.app/', '_blank');
+      return;
     }
 
     try {
-      const recipientPubKey = new PublicKey(SOLANA_PAYMENT_ADDRESS);
+      const response = await phantom.connect();
+      const address = response.publicKey.toString();
       
-      // Convert USD to lamports (assuming 1 SOL = ~$150 for estimation, user pays in SOL)
-      // For actual USDT, we would use SPL token transfer
-      const lamports = Math.floor(amountUSD * LAMPORTS_PER_SOL * 0.01); // Small amount for testing
-
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: recipientPubKey,
-          lamports: lamports,
-        })
-      );
-
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      const signature = await sendTransaction(transaction, connection);
-
-      // Wait for confirmation
-      await connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight,
-      });
-
-      return { hash: signature };
+      setWalletAddress(address);
+      setWalletType('Phantom');
+      setIsConnected(true);
+      localStorage.setItem('walletConnected', 'phantom');
+      localStorage.setItem('walletAddress', address);
+      
+      await saveWalletToBackend(address);
+      await fetchUserOrders(address);
     } catch (error) {
-      console.error('Payment failed:', error);
-      throw error;
+      console.error('Failed to connect Phantom:', error);
     }
-  }, [publicKey, connection, sendTransaction]);
+  };
 
-  // Effects
-  useEffect(() => {
-    if (connected && walletAddress) {
-      fetchBalance();
-      fetchUserOrders(walletAddress);
-      saveWalletToBackend();
-    } else {
-      setSolBalance(null);
-      setUserOrders([]);
-      setUserStats({ totalTokens: 0, totalSpent: 0 });
+  // Connect Solflare wallet
+  const connectSolflare = async () => {
+    const solflare = getSolflare();
+    if (!solflare) {
+      window.open('https://solflare.com/', '_blank');
+      return;
     }
-  }, [connected, walletAddress, fetchBalance, fetchUserOrders, saveWalletToBackend]);
+
+    try {
+      await solflare.connect();
+      const address = solflare.publicKey.toString();
+      
+      setWalletAddress(address);
+      setWalletType('Solflare');
+      setIsConnected(true);
+      localStorage.setItem('walletConnected', 'solflare');
+      localStorage.setItem('walletAddress', address);
+      
+      await saveWalletToBackend(address);
+      await fetchUserOrders(address);
+    } catch (error) {
+      console.error('Failed to connect Solflare:', error);
+    }
+  };
+
+  // Disconnect wallet
+  const disconnect = async () => {
+    const phantom = getPhantom();
+    const solflare = getSolflare();
+    
+    try {
+      if (walletType === 'Phantom' && phantom) {
+        await phantom.disconnect();
+      } else if (walletType === 'Solflare' && solflare) {
+        await solflare.disconnect();
+      }
+    } catch (error) {
+      console.error('Error disconnecting:', error);
+    }
+
+    setWalletAddress(null);
+    setWalletType(null);
+    setIsConnected(false);
+    setSolBalance(null);
+    setUserOrders([]);
+    setUserStats({ totalTokens: 0, totalSpent: 0 });
+    localStorage.removeItem('walletConnected');
+    localStorage.removeItem('walletAddress');
+  };
+
+  // Send payment (simulated for presale - actual payment handled by user externally)
+  const sendPayment = async (amountUSD) => {
+    // For presale, we record the order and user manually sends USDT
+    // This is a placeholder for the actual transaction
+    return { hash: `order_${Date.now()}` };
+  };
+
+  // Auto-reconnect on page load
+  useEffect(() => {
+    const reconnect = async () => {
+      const savedWallet = localStorage.getItem('walletConnected');
+      const savedAddress = localStorage.getItem('walletAddress');
+      
+      if (savedWallet && savedAddress) {
+        if (savedWallet === 'phantom') {
+          const phantom = getPhantom();
+          if (phantom?.isConnected) {
+            setWalletAddress(savedAddress);
+            setWalletType('Phantom');
+            setIsConnected(true);
+            await fetchUserOrders(savedAddress);
+          }
+        } else if (savedWallet === 'solflare') {
+          const solflare = getSolflare();
+          if (solflare?.isConnected) {
+            setWalletAddress(savedAddress);
+            setWalletType('Solflare');
+            setIsConnected(true);
+            await fetchUserOrders(savedAddress);
+          }
+        }
+      }
+    };
+    
+    // Small delay to ensure wallet extensions are loaded
+    setTimeout(reconnect, 500);
+  }, [fetchUserOrders]);
 
   const value = {
     // Connection state
-    isConnected: connected,
+    isConnected,
     walletAddress,
     walletType,
     solBalance,
@@ -132,36 +182,17 @@ function WalletContextProvider({ children }) {
     userStats,
     
     // Actions
+    connectPhantom,
+    connectSolflare,
+    disconnect,
     sendPayment,
     fetchUserOrders,
-    disconnect,
-    fetchBalance,
+    
+    // Payment address
+    paymentAddress: SOLANA_PAYMENT_ADDRESS,
   };
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
-}
-
-// Main provider wrapper with Solana providers
-export function WalletProvider({ children }) {
-  const endpoint = useMemo(() => clusterApiUrl(SOLANA_NETWORK), []);
-  
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(), // This enables MetaMask via Solflare snap
-    ],
-    []
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <SolanaWalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <WalletContextProvider>{children}</WalletContextProvider>
-        </WalletModalProvider>
-      </SolanaWalletProvider>
-    </ConnectionProvider>
-  );
 }
 
 export function useWallet() {
@@ -171,6 +202,3 @@ export function useWallet() {
   }
   return context;
 }
-
-// Export Solana wallet hook for direct access to wallet modal
-export { useSolanaWallet as useSolanaWalletDirect };
