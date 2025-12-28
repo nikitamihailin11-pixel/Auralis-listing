@@ -87,11 +87,11 @@ export const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
             data-testid="success-close-button"
             className="w-full h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl"
           >
-            Отлично!
+            Excellent!
           </Button>
 
           <p className="text-xs text-gray-500 mt-4">
-            Следите за обновлениями в наших соцсетях
+            Follow updates on our social media
           </p>
         </motion.div>
       </div>
