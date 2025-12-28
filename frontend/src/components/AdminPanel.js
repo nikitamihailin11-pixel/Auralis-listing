@@ -46,12 +46,12 @@ export const AdminPanel = ({ onBack }) => {
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       await axios.put(`${API}/orders/${orderId}/status`, { status: newStatus });
-      toast.success(`Статус обновлён: ${newStatus}`);
+      toast.success(`Status updated: ${newStatus}`);
       fetchOrders();
       fetchStats();
     } catch (error) {
       console.error('Failed to update order:', error);
-      toast.error('Ошибка обновления статуса');
+      toast.error('Failed to update status');
     }
   };
 
