@@ -47,8 +47,8 @@ export const Hero = ({ onBuyClick }) => {
             </h1>
 
             <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-xl">
-              Чат, где твой 3D-аватар оживает с AI и зарабатывает токены, пока ты спишь. 
-              Telegram + NFT + Gaming на блокчейне Aptos.
+              A chat where your 3D avatar comes alive with AI and earns tokens while you sleep. 
+              Telegram + NFT + Gaming on Aptos blockchain.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -100,8 +100,8 @@ export const Hero = ({ onBuyClick }) => {
               >
                 <div className="relative w-full aspect-square rounded-3xl overflow-hidden border-4 border-purple-500/20 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
                   <img
-                    src="https://images.pexels.com/photos/8832742/pexels-photo-8832742.jpeg"
-                    alt="3D Avatar"
+                    src="https://images.pexels.com/photos/11798029/pexels-photo-11798029.jpeg"
+                    alt="3D Avatar NFT"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-purple-900/40 to-transparent" />
