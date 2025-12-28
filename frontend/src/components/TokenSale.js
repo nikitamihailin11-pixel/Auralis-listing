@@ -235,7 +235,6 @@ export const TokenSale = () => {
                 >
                   <Wallet className="w-6 h-6" />
                   <span>MetaMask</span>
-                  <span className="text-xs opacity-80">Polygon (POL)</span>
                 </Button>
                 <Button
                   onClick={() => setSelectedWallet('aptos')}
@@ -249,7 +248,6 @@ export const TokenSale = () => {
                 >
                   <Wallet className="w-6 h-6" />
                   <span>Petra Wallet</span>
-                  <span className="text-xs opacity-80">Aptos (USDT)</span>
                 </Button>
               </div>
             </div>
