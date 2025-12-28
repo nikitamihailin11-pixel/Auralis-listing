@@ -108,20 +108,33 @@ export const TokenSale = () => {
         price_per_token: ARA_PRICE,
       });
 
-      toast.success(
-        <div>
-          <div className="font-bold">Order Created Successfully!</div>
-          <div className="text-sm mt-1">Order ID: {response.data.id.substring(0, 8)}...</div>
-          <div className="text-sm">Tokens will be distributed manually</div>
-        </div>
-      );
-      setQuantity('');
+      // Store pending order and show payment modal
+      setPendingOrder({
+        id: response.data.id,
+        quantity: parseFloat(quantity),
+        pricePerToken: ARA_PRICE,
+        totalAmount: totalCost,
+        walletAddress: currentAddress,
+      });
+      
+      setShowPaymentModal(true);
     } catch (error) {
       console.error('Failed to create order:', error);
       toast.error(error.response?.data?.detail || 'Failed to create order. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleConfirmPayment = () => {
+    setShowPaymentModal(false);
+    setShowSuccessModal(true);
+    setQuantity('');
+  };
+
+  const handleCloseSuccess = () => {
+    setShowSuccessModal(false);
+    setPendingOrder(null);
   };
 
   const handleQuickAmount = (amount) => {
