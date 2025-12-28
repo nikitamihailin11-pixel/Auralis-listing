@@ -33,6 +33,11 @@ export const TokenSale = () => {
 
   const [quantity, setQuantity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState(null);
+  const [stats, setStats] = useState({ total_ara_sold: 0 });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   const currentAddress = selectedWallet === 'metamask' ? metamaskAccount : aptosAccount;
   const currentBalance = selectedWallet === 'metamask' ? metamaskBalance : aptosBalance;
