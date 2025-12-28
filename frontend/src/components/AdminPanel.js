@@ -89,7 +89,7 @@ export const AdminPanel = ({ onBack }) => {
             className="mb-4 bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Назад на главную
+            Back to Main
           </Button>
           
           <div className="flex items-center justify-between">
