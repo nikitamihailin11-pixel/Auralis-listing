@@ -131,7 +131,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
                 Processing...
               </div>
             ) : (
-              `💳 Pay ${orderDetails.totalAmount} ${paymentCurrency} Now`
+              `💳 Pay ${orderDetails.totalAmount} USDT Now`
             )}
           </Button>
 
