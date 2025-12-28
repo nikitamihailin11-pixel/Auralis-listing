@@ -157,6 +157,58 @@ export const TokenSale = () => {
             Buy ARA Tokens
           </h2>
           <p className="text-xl text-gray-400">Secure your tokens at presale price</p>
+          
+          {/* Countdown Timer */}
+          <div className="mt-8 inline-block">
+            <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-2xl p-6 backdrop-blur-md">
+              <div className="flex items-center gap-2 justify-center mb-3">
+                <Clock className="w-5 h-5 text-orange-400" />
+                <span className="text-sm text-gray-300 font-semibold">Presale Ends In</span>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                {[
+                  { label: 'Days', value: timeLeft.days },
+                  { label: 'Hours', value: timeLeft.hours },
+                  { label: 'Minutes', value: timeLeft.minutes },
+                  { label: 'Seconds', value: timeLeft.seconds },
+                ].map((item) => (
+                  <div key={item.label} className="text-center">
+                    <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-3 min-w-[70px]">
+                      <div className="text-3xl font-bold text-white">{item.value.toString().padStart(2, '0')}</div>
+                    </div>
+                    <div className="text-xs text-gray-400 mt-2">{item.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mt-8 max-w-2xl mx-auto">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-gray-300 font-semibold flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  Sale Progress
+                </span>
+                <span className="text-sm font-bold text-green-400">
+                  {soldPercentage.toFixed(2)}% Sold
+                </span>
+              </div>
+              <div className="relative h-4 bg-black/40 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${soldPercentage}%` }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"
+                />
+              </div>
+              <div className="flex justify-between mt-2 text-xs text-gray-500">
+                <span>{stats.total_ara_sold.toLocaleString()} ARA Sold</span>
+                <span>{TOKENS_FOR_SALE.toLocaleString()} ARA Total</span>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         <motion.div
