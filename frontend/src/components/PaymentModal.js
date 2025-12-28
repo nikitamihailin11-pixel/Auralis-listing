@@ -7,45 +7,18 @@ import { useWallet } from '../context/WalletContext';
 
 export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }) => {
   const [isPaying, setIsPaying] = useState(false);
-  const { selectedWallet, sendPolygonUSDT, sendUSDTPayment } = useWallet();
+  const { sendSolanaPayment } = useWallet();
 
   const handlePayment = async () => {
     setIsPaying(true);
-    
     try {
-      let response;
-      
-      if (selectedWallet === 'metamask') {
-        response = await sendPolygonUSDT(orderDetails.totalAmount);
-      } else {
-        response = await sendUSDTPayment(orderDetails.totalAmount);
-      }
-      
+      const response = await sendSolanaPayment(orderDetails.totalAmount);
       if (response && response.hash) {
-        toast.success(
-          <div>
-            <div className="font-bold">Transaction Sent!</div>
-            <div className="text-xs mt-1">Hash: {response.hash.substring(0, 16)}...</div>
-          </div>
-        );
+        toast.success(<div><div className="font-bold">Transaction Sent!</div><div className="text-xs mt-1">Hash: {response.hash.substring(0, 16)}...</div></div>);
         onConfirmPayment();
       }
     } catch (error) {
-      console.error('Payment failed:', error);
-      
-      let errorMessage = 'Payment failed. Please try again.';
-      
-      if (error.message) {
-        if (error.message.includes('User rejected')) {
-          errorMessage = 'Transaction was rejected';
-        } else if (error.message.includes('Insufficient')) {
-          errorMessage = 'Insufficient USDT balance';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast.error(errorMessage);
+      toast.error(error.message?.includes('rejected') ? 'Transaction rejected' : error.message || 'Payment failed');
     } finally {
       setIsPaying(false);
     }
@@ -56,38 +29,18 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        />
-
-        {/* Modal */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-2xl bg-gradient-to-b from-[#1E1B4B] to-[#0B0E14] border border-white/10 rounded-3xl p-8 shadow-2xl"
-        >
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-          >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+          className="relative w-full max-w-2xl glass-effect rounded-3xl p-8 shadow-2xl">
+          <button onClick={onClose} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center">
             <X className="w-5 h-5 text-gray-400" />
           </button>
-
-          {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">Confirm Payment</h2>
-            <p className="text-gray-400">Pay with USDT</p>
+            <p className="text-gray-400">Pay with SOL</p>
           </div>
-
-          {/* Order Details */}
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 mb-6">
+          <div className="glass-effect rounded-2xl p-6 mb-6">
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">ARA Quantity:</span>
@@ -99,45 +52,25 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
               </div>
               <div className="border-t border-white/10 pt-3 flex justify-between">
                 <span className="font-bold text-white">Total to Pay:</span>
-                <span className="font-bold text-2xl bg-gradient-to-r from-[#CCFF00] to-[#00F0FF] bg-clip-text text-transparent">
-                  ${orderDetails.totalAmount} USDT
+                <span className="font-bold text-2xl bg-gradient-to-r from-[#9D7FFF] to-[#4DD4E8] bg-clip-text text-transparent">
+                  ${orderDetails.totalAmount} SOL
                 </span>
               </div>
             </div>
           </div>
-
-          {/* Instructions */}
-          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-4 mb-6">
+          <div className="glass-effect rounded-xl p-4 mb-6">
             <h3 className="text-white font-bold mb-2 flex items-center gap-2">
-              <WalletIcon className="w-5 h-5 text-blue-400" />
-              Automatic Payment
+              <WalletIcon className="w-5 h-5 text-[#4DD4E8]" />Automatic Payment
             </h3>
             <p className="text-sm text-gray-300">
-              Click the button below to open your {selectedWallet === 'metamask' ? 'MetaMask' : 'Petra'} wallet and confirm the transaction. 
-              Payment will be sent automatically to the secure address.
+              Click below to open Phantom and confirm the SOL transaction.
             </p>
           </div>
-
-          {/* Payment Button */}
-          <Button
-            onClick={handlePayment}
-            disabled={isPaying}
-            data-testid="confirm-payment-button"
-            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl shadow-lg"
-          >
-            {isPaying ? (
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                Processing...
-              </div>
-            ) : (
-              `💳 Pay ${orderDetails.totalAmount} USDT Now`
-            )}
+          <Button onClick={handlePayment} disabled={isPaying} data-testid="confirm-payment-button"
+            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#9D7FFF] to-[#B34DFF] hover:from-[#8B6FE6] hover:to-[#9D3FE6] disabled:opacity-50 text-white rounded-xl">
+            {isPaying ? <div className="flex items-center gap-2"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />Processing...</div> : `💳 Pay ${orderDetails.totalAmount} SOL Now`}
           </Button>
-
-          <p className="text-xs text-center text-gray-500 mt-4">
-            Tokens will be automatically distributed after presale ends
-          </p>
+          <p className="text-xs text-center text-gray-500 mt-4">Tokens distributed after presale ends</p>
         </motion.div>
       </div>
     </AnimatePresence>
