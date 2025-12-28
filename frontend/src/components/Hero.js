@@ -1,14 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Globe, Users } from 'lucide-react';
+import { Sparkles, Globe, Users, Wallet } from 'lucide-react';
 import { Button } from './ui/button';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '../context/WalletContext';
 
 const AVATAR_URL = 'https://customer-assets.emergentagent.com/job_auralis-app/artifacts/54orsfy0_7a153b1b-b478-48c5-a9e3-246632224b62.jpg';
 
 export const Hero = ({ onBuyClick }) => {
-  const { isConnected, walletAddress, walletType } = useWallet();
+  const { isConnected, walletAddress, walletType, connectPhantom, connectSolflare, disconnect } = useWallet();
 
   return (
     <div className="relative min-h-screen flex items-center overflow-hidden aurora-bg globe-pattern">
@@ -58,9 +57,24 @@ export const Hero = ({ onBuyClick }) => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
               {!isConnected ? (
-                <WalletMultiButton className="!h-14 !px-8 !text-lg" />
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    onClick={connectPhantom}
+                    className="h-14 px-6 text-base font-bold bg-gradient-to-r from-[#AB9FF2] to-[#9945FF] hover:from-[#BDB4F5] hover:to-[#AB56FF] text-white rounded-2xl transition-all hover:scale-105"
+                  >
+                    <Wallet className="w-5 h-5 mr-2" />
+                    Connect Phantom
+                  </Button>
+                  <Button 
+                    onClick={connectSolflare}
+                    className="h-14 px-6 text-base font-bold bg-gradient-to-r from-[#FC8E00] to-[#FFA200] hover:from-[#FFB033] hover:to-[#FFB833] text-white rounded-2xl transition-all hover:scale-105"
+                  >
+                    <Wallet className="w-5 h-5 mr-2" />
+                    Connect Solflare
+                  </Button>
+                </div>
               ) : (
-                <>
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                   <Button 
                     onClick={onBuyClick} 
                     data-testid="hero-buy-ara-button"
@@ -68,13 +82,22 @@ export const Hero = ({ onBuyClick }) => {
                   >
                     BUY ARA TOKENS
                   </Button>
-                  <div className="glass-effect rounded-2xl px-4 py-2 flex items-center gap-2">
+                  <div className="glass-effect rounded-2xl px-4 py-3 flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-sm text-gray-300">
-                      {walletType}: {walletAddress?.slice(0, 4)}...{walletAddress?.slice(-4)}
-                    </span>
+                    <div>
+                      <span className="text-xs text-gray-400 block">{walletType}</span>
+                      <span className="text-sm text-white font-mono">
+                        {walletAddress?.slice(0, 4)}...{walletAddress?.slice(-4)}
+                      </span>
+                    </div>
+                    <button 
+                      onClick={disconnect}
+                      className="text-gray-400 hover:text-red-400 transition-colors ml-2"
+                    >
+                      ✕
+                    </button>
                   </div>
-                </>
+                </div>
               )}
             </div>
 
