@@ -168,12 +168,12 @@ export const AdminPanel = ({ onBack }) => {
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">ID</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Кошелек</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Сеть</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Кол-во ARA</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Сумма</th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-gray-400">Статус</th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-gray-400">Действия</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Wallet</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Network</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Quantity ARA</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Amount</th>
+                    <th className="text-center py-3 px-4 text-sm font-semibold text-gray-400">Status</th>
+                    <th className="text-center py-3 px-4 text-sm font-semibold text-gray-400">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
