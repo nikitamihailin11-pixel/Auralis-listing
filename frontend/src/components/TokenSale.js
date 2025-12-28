@@ -20,7 +20,7 @@ PRESALE_END_DATE.setDate(PRESALE_END_DATE.getDate() + 127);
 const TOKENS_FOR_SALE = 400000000;
 
 export const TokenSale = () => {
-  const { isConnected, walletAddress, userStats, connectPhantom, connectMetaMask, fetchUserOrders } = useWallet();
+  const { isConnected, walletAddress, walletType, userStats, connectPhantom, connectMetaMask, sendPayment, fetchUserOrders } = useWallet();
   const [quantity, setQuantity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -74,42 +74,70 @@ export const TokenSale = () => {
       toast.error('Please enter a valid quantity');
       return;
     }
+
+    const usdtAmount = parseFloat(totalCost);
+    
+    // Check if MetaMask - need EVM address (not implemented yet)
+    if (walletType === 'MetaMask') {
+      toast.error('MetaMask payments coming soon. Please use Phantom wallet for now.');
+      return;
+    }
     
     setIsLoading(true);
     try {
-      // Create order
-      const response = await axios.post(`${API}/orders/create`, {
+      // Step 1: Create order in pending status
+      const orderResponse = await axios.post(`${API}/orders/create`, {
         wallet_address: walletAddress,
         blockchain: 'solana',
         quantity: parseFloat(quantity),
         price_per_token: ARA_PRICE,
       });
+      const orderId = orderResponse.data.id;
 
-      // Update order status to confirmed (simulating successful payment)
-      await axios.put(`${API}/orders/${response.data.id}/status`, {
-        status: 'confirmed'
-      });
-
-      // Update user stats
-      await fetchUserOrders(walletAddress);
+      // Step 2: Send USDT payment via wallet
+      toast.info('Please confirm the transaction in your wallet...');
       
-      // Fetch updated global stats
-      const statsResponse = await axios.get(`${API}/stats`);
-      setStats(statsResponse.data);
-
-      setCompletedOrder({
-        id: response.data.id,
-        quantity: parseFloat(quantity),
-        pricePerToken: ARA_PRICE,
-        totalAmount: totalCost,
-        walletAddress: walletAddress,
-      });
+      const paymentResult = await sendPayment(usdtAmount);
       
-      setShowSuccessModal(true);
-      setQuantity('');
-      toast.success('Purchase successful!');
+      if (paymentResult && paymentResult.hash) {
+        // Step 3: Update order status to confirmed
+        await axios.put(`${API}/orders/${orderId}/status`, {
+          status: 'confirmed',
+          tx_hash: paymentResult.hash
+        });
+
+        // Step 4: Refresh user stats
+        await fetchUserOrders(walletAddress);
+        
+        // Refresh global stats
+        const statsResponse = await axios.get(`${API}/stats`);
+        setStats(statsResponse.data);
+
+        // Show success modal
+        setCompletedOrder({
+          id: orderId,
+          quantity: parseFloat(quantity),
+          pricePerToken: ARA_PRICE,
+          totalAmount: totalCost,
+          walletAddress: walletAddress,
+          txHash: paymentResult.hash,
+        });
+        
+        setShowSuccessModal(true);
+        setQuantity('');
+        toast.success('Purchase successful!');
+      }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to process purchase');
+      console.error('Purchase error:', error);
+      
+      // User rejected transaction
+      if (error.message?.includes('rejected') || error.message?.includes('User rejected')) {
+        toast.error('Transaction cancelled');
+      } else if (error.message?.includes('insufficient')) {
+        toast.error('Insufficient USDT balance');
+      } else {
+        toast.error(error.message || 'Payment failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -218,7 +246,7 @@ export const TokenSale = () => {
               <div className="glass-effect rounded-2xl p-6 mb-6 border border-[#d4a853]/20">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-xs text-gray-400">Connected Wallet</p>
+                    <p className="text-xs text-gray-400">Connected Wallet ({walletType})</p>
                     <p className="text-sm font-mono font-semibold text-[#4dd4e8]">
                       {walletAddress.substring(0, 8)}...{walletAddress.substring(walletAddress.length - 6)}
                     </p>
@@ -293,9 +321,16 @@ export const TokenSale = () => {
                 data-testid="create-order-button"
                 className="w-full h-16 text-lg font-bold bg-gradient-to-r from-[#d4a853] to-[#c87840] hover:from-[#e5b964] hover:to-[#d98950] disabled:opacity-50 text-[#0d1117] rounded-xl glow-gold transition-all hover:scale-[1.02]"
               >
-                {isLoading ? 'Processing...' : <><ArrowRight className="w-6 h-6 mr-2" />Purchase Tokens</>}
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#0d1117]" />
+                    Processing Payment...
+                  </div>
+                ) : (
+                  <><ArrowRight className="w-6 h-6 mr-2" />Pay ${totalCost} USDT</>
+                )}
               </Button>
-              <p className="text-xs text-center text-gray-500 mt-4">Tokens will be distributed after presale ends (Q2 2026)</p>
+              <p className="text-xs text-center text-gray-500 mt-4">Payment via {walletType} • Tokens distributed Q2 2026</p>
             </div>
           )}
         </Card>
