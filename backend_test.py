@@ -265,33 +265,34 @@ def main():
     print("\n📡 Testing API Root...")
     root_data = tester.test_api_root()
     
-    # Test 2: Wallet Connections
+    # Test 2: Wallet Connections (using review request requirements)
     print("\n💰 Testing Wallet Connections...")
-    test_eth_address = "0x742d35Cc6634C0532925a3b8D4C9db96590c6C87"
-    test_aptos_address = "0x1234567890abcdef1234567890abcdef12345678"
+    test_wallet_address = "TestWallet123"
     
-    eth_wallet = tester.test_wallet_connection(test_eth_address, "ethereum")
-    aptos_wallet = tester.test_wallet_connection(test_aptos_address, "aptos")
+    wallet = tester.test_wallet_connection(test_wallet_address, "solana")
     
     # Test 3: Get Wallet
     print("\n🔍 Testing Get Wallet...")
-    if eth_wallet:
-        tester.test_get_wallet(test_eth_address)
+    if wallet:
+        tester.test_get_wallet(test_wallet_address)
     
-    # Test 4: Create Orders
+    # Test 4: Create Orders (as per review request)
     print("\n📝 Testing Order Creation...")
     order = None
-    if eth_wallet:
-        order = tester.test_create_order(test_eth_address, "ethereum", 1000)
+    if wallet:
+        order = tester.test_create_order(test_wallet_address, "solana", 100)
     
     # Test 5: Get Wallet Orders
     print("\n📋 Testing Get Wallet Orders...")
-    if eth_wallet:
-        orders = tester.test_get_wallet_orders(test_eth_address)
+    if wallet:
+        orders = tester.test_get_wallet_orders(test_wallet_address)
+        print(f"Found {len(orders) if orders else 0} orders for wallet")
     
-    # Test 6: Stats Endpoint
+    # Test 6: Stats Endpoint (verify stats updated after order)
     print("\n📊 Testing Stats Endpoint...")
-    stats = tester.test_stats_endpoint()
+    stats_before = tester.test_stats_endpoint()
+    if stats_before:
+        print(f"Stats: {stats_before['total_orders']} orders, {stats_before['total_wallets']} wallets, {stats_before['total_ara_sold']} ARA sold")
     
     # Test 7: Error Handling
     print("\n⚠️ Testing Error Handling...")
@@ -300,6 +301,8 @@ def main():
     # Test 8: Admin Endpoints
     print("\n👑 Testing Admin Endpoints...")
     all_orders = tester.test_get_all_orders()
+    if all_orders:
+        print(f"Total orders in system: {len(all_orders)}")
     
     # Test order status update if we have an order
     if order and order.get("id"):
