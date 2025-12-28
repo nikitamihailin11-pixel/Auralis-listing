@@ -20,7 +20,7 @@ PRESALE_END_DATE.setDate(PRESALE_END_DATE.getDate() + 127);
 const TOKENS_FOR_SALE = 400000000;
 
 export const TokenSale = () => {
-  const { isConnected, walletAddress, walletType, userStats, connectPhantom, connectMetaMask, sendPayment, fetchUserOrders } = useWallet();
+  const { isConnected, walletAddress, walletType, userStats, connectPhantom, sendPayment, fetchUserOrders } = useWallet();
   const [quantity, setQuantity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -77,12 +77,6 @@ export const TokenSale = () => {
 
     const usdtAmount = parseFloat(totalCost);
     
-    // Check if MetaMask - need EVM address (not implemented yet)
-    if (walletType === 'MetaMask') {
-      toast.error('MetaMask payments coming soon. Please use Phantom wallet for now.');
-      return;
-    }
-    
     setIsLoading(true);
     try {
       // Step 1: Create order in pending status
@@ -94,8 +88,8 @@ export const TokenSale = () => {
       });
       const orderId = orderResponse.data.id;
 
-      // Step 2: Send USDT payment via wallet
-      toast.info('Please confirm the transaction in your wallet...');
+      // Step 2: Send payment via Phantom
+      toast.info('Confirm transaction in Phantom...');
       
       const paymentResult = await sendPayment(usdtAmount);
       
@@ -130,11 +124,10 @@ export const TokenSale = () => {
     } catch (error) {
       console.error('Purchase error:', error);
       
-      // User rejected transaction
-      if (error.message?.includes('rejected') || error.message?.includes('User rejected')) {
+      if (error.message?.includes('User rejected') || error.code === 4001) {
         toast.error('Transaction cancelled');
       } else if (error.message?.includes('insufficient')) {
-        toast.error('Insufficient USDT balance');
+        toast.error('Insufficient SOL balance');
       } else {
         toast.error(error.message || 'Payment failed. Please try again.');
       }
@@ -222,23 +215,14 @@ export const TokenSale = () => {
                 <Wallet className="w-10 h-10 text-[#d4a853]" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h3>
-              <p className="text-gray-400 mb-6">Connect Phantom or MetaMask to purchase tokens</p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button 
-                  onClick={connectPhantom}
-                  className="h-12 px-6 font-bold bg-gradient-to-r from-[#AB9FF2] to-[#9945FF] hover:from-[#BDB4F5] hover:to-[#AB56FF] text-white rounded-xl transition-all"
-                >
-                  <Wallet className="w-5 h-5 mr-2" />
-                  Connect Phantom
-                </Button>
-                <Button 
-                  onClick={connectMetaMask}
-                  className="h-12 px-6 font-bold bg-gradient-to-r from-[#E2761B] to-[#F6851B] hover:from-[#F5923B] hover:to-[#FFA03B] text-white rounded-xl transition-all"
-                >
-                  <Wallet className="w-5 h-5 mr-2" />
-                  Connect MetaMask
-                </Button>
-              </div>
+              <p className="text-gray-400 mb-6">Connect Phantom wallet to purchase ARA tokens on Solana</p>
+              <Button 
+                onClick={connectPhantom}
+                className="h-14 px-8 font-bold bg-gradient-to-r from-[#AB9FF2] to-[#9945FF] hover:from-[#BDB4F5] hover:to-[#AB56FF] text-white rounded-xl transition-all hover:scale-105"
+              >
+                <Wallet className="w-5 h-5 mr-2" />
+                Connect Phantom
+              </Button>
             </div>
           ) : (
             <div>
@@ -324,13 +308,13 @@ export const TokenSale = () => {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#0d1117]" />
-                    Processing Payment...
+                    Confirming...
                   </div>
                 ) : (
-                  <><ArrowRight className="w-6 h-6 mr-2" />Pay ${totalCost} USDT</>
+                  <><ArrowRight className="w-6 h-6 mr-2" />Buy {quantity || 0} ARA for ${totalCost}</>
                 )}
               </Button>
-              <p className="text-xs text-center text-gray-500 mt-4">Payment via {walletType} • Tokens distributed Q2 2026</p>
+              <p className="text-xs text-center text-gray-500 mt-4">Payment via Solana • Tokens distributed Q2 2026</p>
             </div>
           )}
         </Card>
