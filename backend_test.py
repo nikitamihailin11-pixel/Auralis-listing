@@ -176,8 +176,8 @@ class AuralisAPITester:
         """Test creating order without connected wallet (should fail)"""
         try:
             payload = {
-                "wallet_address": "0xnonexistent",
-                "blockchain": "ethereum",
+                "wallet_address": "NonexistentWallet123",
+                "blockchain": "solana",
                 "quantity": 1000,
                 "price_per_token": 0.01
             }
