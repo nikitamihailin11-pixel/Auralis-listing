@@ -37,10 +37,10 @@ export const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
 
           {/* Title */}
           <h2 className="text-3xl font-bold text-white mb-3">
-            Оплата получена!
+            Payment Received!
           </h2>
           <p className="text-gray-300 mb-8">
-            Ваш заказ успешно обработан
+            Your order has been successfully processed
           </p>
 
           {/* Order Details */}
