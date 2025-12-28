@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, ArrowRight, Check } from 'lucide-react';
+import { Wallet, ArrowRight, Check, Clock, TrendingUp } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
 import { useWallet } from '../context/WalletContext';
+import { PaymentModal } from './PaymentModal';
+import { SuccessModal } from './SuccessModal';
 import axios from 'axios';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const ARA_PRICE = 0.01;
+const PRESALE_END_DATE = new Date('2026-03-31T23:59:59'); // End of Q1 2026
+const TOTAL_SUPPLY = 1000000000; // 1 billion
+const TOKENS_FOR_SALE = 400000000; // 40% for community
 
 export const TokenSale = () => {
   const {
