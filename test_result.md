@@ -51,11 +51,14 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "PUT /api/orders/{order_id}/status updates order status (pending/confirmed/failed)"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Order status update working perfectly. Successfully updated order status from pending to confirmed. API properly validates status values and returns appropriate responses. Also tested error handling for nonexistent orders (returns 404)."
 
   - task: "Get wallet orders endpoint"
     implemented: true
