@@ -135,7 +135,7 @@ export function WalletProvider({ children }) {
     localStorage.removeItem('aptosConnected');
   };
 
-  const sendPolygonPayment = async (amountUSD) => {
+  const sendPolygonUSDT = async (amountUSD) => {
     if (!window.ethereum || !isMetamaskConnected) {
       throw new Error('MetaMask not connected');
     }
