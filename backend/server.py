@@ -240,7 +240,7 @@ async def get_wallet_orders(wallet_address: str):
 
 @api_router.get("/orders/all", response_model=List[OrderResponse])
 async def get_all_orders():
-    """Retrieve all orders (admin only - add authentication in production)\"\"\"
+    """Retrieve all orders (admin only - add authentication in production)"""
     try:
         orders = await orders_collection.find().sort("created_at", -1).to_list(length=1000)
         
@@ -268,7 +268,7 @@ async def get_all_orders():
 
 @api_router.put("/orders/{order_id}/status")
 async def update_order_status(order_id: str, request: dict):
-    """Update order status (admin only - add authentication in production)\"\"\"
+    """Update order status (admin only - add authentication in production)"""
     try:
         from bson import ObjectId
         
