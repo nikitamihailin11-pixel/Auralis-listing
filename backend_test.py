@@ -257,6 +257,7 @@ class AuralisAPITester:
 
 def test_specific_purchase_flow(tester):
     """Test the specific Auralis token purchase flow as requested"""
+    import requests
     print("\n🎯 Testing Specific Purchase Flow (Review Request)...")
     print("=" * 60)
     
