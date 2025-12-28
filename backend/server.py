@@ -30,8 +30,7 @@ api_router = APIRouter(prefix="/api")
 
 # Enums
 class BlockchainType(str, Enum):
-    POLYGON = "polygon"
-    APTOS = "aptos"
+    SOLANA = "solana"
 
 class OrderStatus(str, Enum):
     PENDING = "pending"
