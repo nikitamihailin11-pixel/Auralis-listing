@@ -358,7 +358,7 @@ export const TokenSale = () => {
             </Button>
 
             <p className="text-xs text-gray-500 text-center mt-4">
-              Tokens will be manually distributed to your wallet after payment confirmation
+              Tokens will be automatically distributed after presale ends
             </p>
           </Card>
         </motion.div>
