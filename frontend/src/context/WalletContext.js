@@ -175,11 +175,18 @@ export function WalletProvider({ children }) {
         }
       }
 
-      // Send transaction (assuming payment in MATIC)
+      // Send USDT transaction on Polygon (using USDT contract)
+      // USDT on Polygon: 0xc2132D05D31c914a87C6611C10748AEb04B58e8F
+      const USDT_CONTRACT = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F';
+      const usdtAmount = Math.floor(amountUSD * 1000000); // USDT has 6 decimals
+      
+      // ERC20 transfer function signature
+      const transferData = `0xa9059cbb000000000000000000000000${POLYGON_PAYMENT_ADDRESS.substring(2)}${usdtAmount.toString(16).padStart(64, '0')}`;
+      
       const transactionParameters = {
         from: accounts[0],
-        to: POLYGON_PAYMENT_ADDRESS,
-        value: '0x' + Math.floor(amountUSD * 1e18).toString(16),
+        to: USDT_CONTRACT,
+        data: transferData,
       };
 
       const txHash = await window.ethereum.request({
@@ -189,7 +196,7 @@ export function WalletProvider({ children }) {
 
       return { hash: txHash };
     } catch (error) {
-      console.error('Polygon payment failed:', error);
+      console.error('Polygon USDT payment failed:', error);
       throw error;
     }
   };
