@@ -94,8 +94,8 @@ export const AdminPanel = ({ onBack }) => {
           
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Админ-панель</h1>
-              <p className="text-gray-400">Управление ордерами и статистика</p>
+              <h1 className="text-4xl font-bold text-white mb-2">Admin Panel</h1>
+              <p className="text-gray-400">Orders management and statistics</p>
             </div>
             <Button
               onClick={() => { fetchOrders(); fetchStats(); }}
