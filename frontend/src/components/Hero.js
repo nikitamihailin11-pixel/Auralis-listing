@@ -1,114 +1,90 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Rocket } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 
 export const Hero = ({ onBuyClick }) => {
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050505]">
-      {/* Background Texture */}
-      <div 
-        className="absolute inset-0 opacity-5"
-        style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1764263996369-141150443ebf?crop=entropy&cs=srgb&fm=jpg&q=85')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      />
-      
-      {/* Animated Glow Elements */}
-      <div className="absolute top-20 left-20 w-96 h-96 bg-[#CCFF00] rounded-full blur-[150px] opacity-10 animate-pulse" />
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-[#00F0FF] rounded-full blur-[150px] opacity-10 animate-pulse" style={{ animationDelay: '1s' }} />
+    <div className="relative min-h-screen flex items-center overflow-hidden aurora-bg">
+      {/* Aurora Effect Layers */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#9D7FFF] rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#4DD4E8] rounded-full blur-[120px]" />
+      </div>
 
-      {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 py-20">
-        <div className="flex flex-col items-center text-center">
-          {/* Massive Title Behind Avatar */}
-          <motion.h1 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Content */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="font-outfit font-black text-8xl md:text-[14rem] tracking-tighter uppercase leading-[0.9] mb-8"
-            style={{
-              background: 'linear-gradient(to right, #CCFF00, #00F0FF)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}
           >
-            AURALIS
-          </motion.h1>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 glass-effect px-4 py-2 rounded-full mb-6"
+            >
+              <Sparkles className="w-4 h-4 text-[#4DD4E8]" />
+              <span className="text-sm font-semibold text-[#4DD4E8]">PRESALE NOW LIVE</span>
+            </motion.div>
 
-          {/* 3D Avatar - Floating */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="relative mb-12 animate-float"
-          >
-            <div className="relative w-80 h-80 rounded-full overflow-hidden border-4 border-[#CCFF00] neon-glow">
-              <img
-                src="https://images.unsplash.com/photo-1564035355568-a1ecb8f31982?crop=entropy&cs=srgb&fm=jpg&q=85"
-                alt="3D Astronaut Avatar"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </motion.div>
+            <h1 className="font-outfit font-black text-6xl md:text-8xl mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-[#9D7FFF] to-[#4DD4E8] bg-clip-text text-transparent">
+                AURALIS
+              </span>
+            </h1>
 
-          {/* Tagline */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="text-2xl md:text-3xl font-outfit font-bold text-[#F0F0F0] mb-4 tracking-tight uppercase"
-          >
-            Defy Gravity. Own the Void.
-          </motion.p>
+            <p className="text-2xl md:text-3xl font-outfit font-bold text-white mb-4">
+              Web3 Socialverse
+            </p>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-lg text-[#888888] max-w-2xl mb-12"
-          >
-            A chat where your 3D avatar comes alive with AI and earns tokens while you sleep. 
-            Telegram + NFT + Gaming on Aptos blockchain.
-          </motion.p>
+            <p className="text-lg text-gray-400 mb-8 leading-relaxed">
+              A chat where your 3D avatar comes alive with AI and earns tokens while you sleep. 
+              Telegram + NFT + Gaming on Aptos blockchain.
+            </p>
 
-          {/* CTA Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1 }}
-          >
             <Button
               onClick={onBuyClick}
               data-testid="hero-buy-ara-button"
-              className="bg-[#CCFF00] hover:bg-[#B3E600] text-black font-bold text-lg px-12 py-7 rounded-full neon-glow transition-all duration-300 hover:scale-105"
+              className="bg-gradient-to-r from-[#9D7FFF] to-[#B34DFF] hover:from-[#8B6FE6] hover:to-[#9D3FE6] text-white font-bold text-lg px-10 py-6 rounded-2xl glow-violet transition-all duration-300"
             >
-              <Rocket className="w-6 h-6 mr-2" />
-              JOIN PRESALE
+              BUY ARA TOKENS
             </Button>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4 mt-12">
+              <div className="glass-effect p-4 rounded-xl">
+                <div className="text-3xl font-black text-[#9D7FFF]">$0.01</div>
+                <div className="text-xs text-gray-400 uppercase">Price</div>
+              </div>
+              <div className="glass-effect p-4 rounded-xl">
+                <div className="text-3xl font-black text-[#4DD4E8]">1B</div>
+                <div className="text-xs text-gray-400 uppercase">Supply</div>
+              </div>
+              <div className="glass-effect p-4 rounded-xl">
+                <div className="text-3xl font-black text-[#B34DFF]">20%</div>
+                <div className="text-xs text-gray-400 uppercase">Airdrop</div>
+              </div>
+            </div>
           </motion.div>
 
-          {/* Stats Cards */}
+          {/* Right - Avatar */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
-            className="grid grid-cols-3 gap-6 mt-16"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="relative"
           >
-            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <div className="text-4xl font-outfit font-black text-[#CCFF00]">$0.01</div>
-              <div className="text-sm text-[#888888] uppercase tracking-wider mt-1">Token Price</div>
-            </div>
-            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <div className="text-4xl font-outfit font-black text-[#00F0FF]">1B</div>
-              <div className="text-sm text-[#888888] uppercase tracking-wider mt-1">Total Supply</div>
-            </div>
-            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <div className="text-4xl font-outfit font-black text-[#FF4D00]">20%</div>
-              <div className="text-sm text-[#888888] uppercase tracking-wider mt-1">Airdrop</div>
+            <div className="relative animate-float">
+              <div className="w-full aspect-square rounded-3xl overflow-hidden glass-effect glow-cyan">
+                <img
+                  src="https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80"
+                  alt="3D Avatar"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
           </motion.div>
         </div>
