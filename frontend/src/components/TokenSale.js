@@ -89,7 +89,7 @@ export const TokenSale = () => {
 
   const handlePurchase = async () => {
     if (!currentAddress) {
-      toast.error('Please connect your Petra Wallet first');
+      toast.error('Please connect your wallet first');
       return;
     }
 
@@ -101,14 +101,15 @@ export const TokenSale = () => {
     setIsLoading(true);
 
     try {
+      const blockchain = selectedWallet === 'metamask' ? 'polygon' : 'aptos';
+      
       const response = await axios.post(`${API}/orders/create`, {
         wallet_address: currentAddress,
-        blockchain: 'aptos',
+        blockchain: blockchain,
         quantity: parseFloat(quantity),
         price_per_token: ARA_PRICE,
       });
 
-      // Store pending order and show payment modal
       setPendingOrder({
         id: response.data.id,
         quantity: parseFloat(quantity),
