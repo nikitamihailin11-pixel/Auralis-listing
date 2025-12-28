@@ -238,6 +238,76 @@ async def get_wallet_orders(wallet_address: str):
             detail=f"Failed to retrieve orders: {str(e)}"
         )
 
+@api_router.get("/orders/all", response_model=List[OrderResponse])
+async def get_all_orders():
+    """Retrieve all orders (admin only - add authentication in production)\"\"\"
+    try:
+        orders = await orders_collection.find().sort("created_at", -1).to_list(length=1000)
+        
+        return [
+            OrderResponse(
+                id=str(order["_id"]),
+                wallet_address=order["wallet_address"],
+                blockchain=order["blockchain"],
+                quantity=order["quantity"],
+                price_per_token=order["price_per_token"],
+                total_amount=order["total_amount"],
+                status=OrderStatus(order["status"]),
+                created_at=datetime.fromisoformat(order["created_at"]),
+                updated_at=datetime.fromisoformat(order["updated_at"])
+            )
+            for order in orders
+        ]
+    
+    except Exception as e:
+        logging.error(f"Failed to retrieve all orders: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve orders: {str(e)}"
+        )
+
+@api_router.put("/orders/{order_id}/status")
+async def update_order_status(order_id: str, request: dict):
+    """Update order status (admin only - add authentication in production)\"\"\"
+    try:
+        from bson import ObjectId
+        
+        new_status = request.get("status")
+        if not new_status or new_status not in [s.value for s in OrderStatus]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid status"
+            )
+        
+        now = datetime.now(timezone.utc)
+        
+        result = await orders_collection.update_one(
+            {"_id": ObjectId(order_id)},
+            {
+                "$set": {
+                    "status": new_status,
+                    "updated_at": now.isoformat()
+                }
+            }
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        return {"message": "Order status updated successfully", "status": new_status}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Failed to update order status: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update order status: {str(e)}"
+        )
+
 @api_router.get("/stats")
 async def get_stats():
     """Get platform statistics"""
