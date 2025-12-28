@@ -232,12 +232,25 @@ export const TokenSale = () => {
                       ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0'
                       : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10'
                   }`}
-                >\n                  <Wallet className=\"w-6 h-6\" />\n                  <span>MetaMask</span>\n                  <span className=\"text-xs opacity-80\">Polygon (POL)</span>\n                </Button>\n                <Button\n                  onClick={() => setSelectedWallet('aptos')}\n                  data-testid=\"select-petra-button\"\n                  variant={selectedWallet === 'aptos' ? 'default' : 'outline'}\n                  className={`h-20 text-base font-semibold transition-all flex flex-col items-center justify-center gap-1 ${
+                >
+                  <Wallet className="w-6 h-6" />
+                  <span>MetaMask</span>
+                  <span className="text-xs opacity-80">Polygon (POL)</span>
+                </Button>
+                <Button
+                  onClick={() => setSelectedWallet('aptos')}
+                  data-testid="select-petra-button"
+                  variant={selectedWallet === 'aptos' ? 'default' : 'outline'}
+                  className={`h-20 text-base font-semibold transition-all flex flex-col items-center justify-center gap-1 ${
                     selectedWallet === 'aptos'
                       ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0'
                       : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10'
                   }`}
-                >\n                  <Wallet className=\"w-6 h-6\" />\n                  <span>Petra Wallet</span>\n                  <span className=\"text-xs opacity-80\">Aptos (USDT)</span>\n                </Button>
+                >
+                  <Wallet className="w-6 h-6" />
+                  <span>Petra Wallet</span>
+                  <span className="text-xs opacity-80">Aptos (USDT)</span>
+                </Button>
               </div>
             </div>
 
