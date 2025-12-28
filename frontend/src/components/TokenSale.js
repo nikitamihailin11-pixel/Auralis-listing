@@ -5,7 +5,6 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
 import { useWallet } from '../context/WalletContext';
-import { PaymentModal } from './PaymentModal';
 import { SuccessModal } from './SuccessModal';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -13,16 +12,19 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const ARA_PRICE = 0.01;
-const PRESALE_END_DATE = new Date('2026-03-31T23:59:59');
+
+// Set presale end date to 127 days from now
+const PRESALE_END_DATE = new Date();
+PRESALE_END_DATE.setDate(PRESALE_END_DATE.getDate() + 127);
+
 const TOKENS_FOR_SALE = 400000000;
 
 export const TokenSale = () => {
-  const { isConnected, walletAddress, userStats, connectPhantom, connectSolflare } = useWallet();
+  const { isConnected, walletAddress, userStats, connectPhantom, connectMetaMask, fetchUserOrders } = useWallet();
   const [quantity, setQuantity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [pendingOrder, setPendingOrder] = useState(null);
+  const [completedOrder, setCompletedOrder] = useState(null);
   const [stats, setStats] = useState({ total_ara_sold: 0 });
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -72,38 +74,50 @@ export const TokenSale = () => {
       toast.error('Please enter a valid quantity');
       return;
     }
+    
     setIsLoading(true);
     try {
+      // Create order
       const response = await axios.post(`${API}/orders/create`, {
         wallet_address: walletAddress,
         blockchain: 'solana',
         quantity: parseFloat(quantity),
         price_per_token: ARA_PRICE,
       });
-      setPendingOrder({
+
+      // Update order status to confirmed (simulating successful payment)
+      await axios.put(`${API}/orders/${response.data.id}/status`, {
+        status: 'confirmed'
+      });
+
+      // Update user stats
+      await fetchUserOrders(walletAddress);
+      
+      // Fetch updated global stats
+      const statsResponse = await axios.get(`${API}/stats`);
+      setStats(statsResponse.data);
+
+      setCompletedOrder({
         id: response.data.id,
         quantity: parseFloat(quantity),
         pricePerToken: ARA_PRICE,
         totalAmount: totalCost,
         walletAddress: walletAddress,
       });
-      setShowPaymentModal(true);
+      
+      setShowSuccessModal(true);
+      setQuantity('');
+      toast.success('Purchase successful!');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to create order');
+      toast.error(error.response?.data?.detail || 'Failed to process purchase');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleConfirmPayment = () => {
-    setShowPaymentModal(false);
-    setShowSuccessModal(true);
-    setQuantity('');
-  };
-
   const handleCloseSuccess = () => {
     setShowSuccessModal(false);
-    setPendingOrder(null);
+    setCompletedOrder(null);
   };
 
   const handleQuickAmount = (amount) => setQuantity(amount.toString());
@@ -180,7 +194,7 @@ export const TokenSale = () => {
                 <Wallet className="w-10 h-10 text-[#d4a853]" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h3>
-              <p className="text-gray-400 mb-6">Connect Phantom or Solflare to view your stats and purchase tokens</p>
+              <p className="text-gray-400 mb-6">Connect Phantom or MetaMask to purchase tokens</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button 
                   onClick={connectPhantom}
@@ -190,11 +204,11 @@ export const TokenSale = () => {
                   Connect Phantom
                 </Button>
                 <Button 
-                  onClick={connectSolflare}
-                  className="h-12 px-6 font-bold bg-gradient-to-r from-[#FC8E00] to-[#FFA200] hover:from-[#FFB033] hover:to-[#FFB833] text-white rounded-xl transition-all"
+                  onClick={connectMetaMask}
+                  className="h-12 px-6 font-bold bg-gradient-to-r from-[#E2761B] to-[#F6851B] hover:from-[#F5923B] hover:to-[#FFA03B] text-white rounded-xl transition-all"
                 >
                   <Wallet className="w-5 h-5 mr-2" />
-                  Connect Solflare
+                  Connect MetaMask
                 </Button>
               </div>
             </div>
@@ -204,7 +218,7 @@ export const TokenSale = () => {
               <div className="glass-effect rounded-2xl p-6 mb-6 border border-[#d4a853]/20">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-xs text-gray-400">Connected Wallet (Solana)</p>
+                    <p className="text-xs text-gray-400">Connected Wallet</p>
                     <p className="text-sm font-mono font-semibold text-[#4dd4e8]">
                       {walletAddress.substring(0, 8)}...{walletAddress.substring(walletAddress.length - 6)}
                     </p>
@@ -286,16 +300,10 @@ export const TokenSale = () => {
           )}
         </Card>
 
-        <PaymentModal 
-          isOpen={showPaymentModal} 
-          onClose={() => setShowPaymentModal(false)}
-          orderDetails={pendingOrder || {}} 
-          onConfirmPayment={handleConfirmPayment} 
-        />
         <SuccessModal 
           isOpen={showSuccessModal} 
           onClose={handleCloseSuccess} 
-          orderDetails={pendingOrder || {}} 
+          orderDetails={completedOrder || {}} 
         />
       </div>
     </div>

@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
-const SOLANA_PAYMENT_ADDRESS = 'C8G8Wir2RBNW5bwwrtS4wcpapKqw5abNMXdVjQSGsS21';
 
 const WalletContext = createContext();
 
@@ -11,7 +10,6 @@ export function WalletProvider({ children }) {
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletType, setWalletType] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [solBalance, setSolBalance] = useState(null);
   const [userOrders, setUserOrders] = useState([]);
   const [userStats, setUserStats] = useState({ totalTokens: 0, totalSpent: 0 });
 
@@ -23,10 +21,10 @@ export function WalletProvider({ children }) {
     return null;
   };
 
-  // Check if Solflare (MetaMask Snap for Solana) is available
-  const getSolflare = () => {
-    if (typeof window !== 'undefined' && window.solflare?.isSolflare) {
-      return window.solflare;
+  // Check if MetaMask is available
+  const getMetaMask = () => {
+    if (typeof window !== 'undefined' && window.ethereum?.isMetaMask) {
+      return window.ethereum;
     }
     return null;
   };
@@ -82,41 +80,38 @@ export function WalletProvider({ children }) {
     }
   };
 
-  // Connect Solflare wallet
-  const connectSolflare = async () => {
-    const solflare = getSolflare();
-    if (!solflare) {
-      window.open('https://solflare.com/', '_blank');
+  // Connect MetaMask wallet
+  const connectMetaMask = async () => {
+    const metamask = getMetaMask();
+    if (!metamask) {
+      window.open('https://metamask.io/', '_blank');
       return;
     }
 
     try {
-      await solflare.connect();
-      const address = solflare.publicKey.toString();
+      const accounts = await metamask.request({ method: 'eth_requestAccounts' });
+      const address = accounts[0];
       
       setWalletAddress(address);
-      setWalletType('Solflare');
+      setWalletType('MetaMask');
       setIsConnected(true);
-      localStorage.setItem('walletConnected', 'solflare');
+      localStorage.setItem('walletConnected', 'metamask');
       localStorage.setItem('walletAddress', address);
       
       await saveWalletToBackend(address);
       await fetchUserOrders(address);
     } catch (error) {
-      console.error('Failed to connect Solflare:', error);
+      console.error('Failed to connect MetaMask:', error);
     }
   };
 
   // Disconnect wallet
   const disconnect = async () => {
     const phantom = getPhantom();
-    const solflare = getSolflare();
     
     try {
       if (walletType === 'Phantom' && phantom) {
         await phantom.disconnect();
-      } else if (walletType === 'Solflare' && solflare) {
-        await solflare.disconnect();
       }
     } catch (error) {
       console.error('Error disconnecting:', error);
@@ -125,18 +120,10 @@ export function WalletProvider({ children }) {
     setWalletAddress(null);
     setWalletType(null);
     setIsConnected(false);
-    setSolBalance(null);
     setUserOrders([]);
     setUserStats({ totalTokens: 0, totalSpent: 0 });
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('walletAddress');
-  };
-
-  // Send payment (simulated for presale - actual payment handled by user externally)
-  const sendPayment = async (amountUSD) => {
-    // For presale, we record the order and user manually sends USDT
-    // This is a placeholder for the actual transaction
-    return { hash: `order_${Date.now()}` };
   };
 
   // Auto-reconnect on page load
@@ -154,42 +141,38 @@ export function WalletProvider({ children }) {
             setIsConnected(true);
             await fetchUserOrders(savedAddress);
           }
-        } else if (savedWallet === 'solflare') {
-          const solflare = getSolflare();
-          if (solflare?.isConnected) {
-            setWalletAddress(savedAddress);
-            setWalletType('Solflare');
-            setIsConnected(true);
-            await fetchUserOrders(savedAddress);
+        } else if (savedWallet === 'metamask') {
+          const metamask = getMetaMask();
+          if (metamask) {
+            try {
+              const accounts = await metamask.request({ method: 'eth_accounts' });
+              if (accounts.length > 0) {
+                setWalletAddress(accounts[0]);
+                setWalletType('MetaMask');
+                setIsConnected(true);
+                await fetchUserOrders(accounts[0]);
+              }
+            } catch (e) {
+              console.error('MetaMask reconnect error:', e);
+            }
           }
         }
       }
     };
     
-    // Small delay to ensure wallet extensions are loaded
     setTimeout(reconnect, 500);
   }, [fetchUserOrders]);
 
   const value = {
-    // Connection state
     isConnected,
     walletAddress,
     walletType,
-    solBalance,
-    
-    // User data
     userOrders,
     userStats,
-    
-    // Actions
     connectPhantom,
-    connectSolflare,
+    connectMetaMask,
     disconnect,
-    sendPayment,
     fetchUserOrders,
-    
-    // Payment address
-    paymentAddress: SOLANA_PAYMENT_ADDRESS,
   };
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

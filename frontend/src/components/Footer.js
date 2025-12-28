@@ -1,5 +1,5 @@
 import React from 'react';
-import { Twitter, Send, Github, FileText, Globe } from 'lucide-react';
+import { Twitter, Send, FileText, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const WHITEPAPER_URL = 'https://customer-assets.emergentagent.com/job_auralis-app/artifacts/ifdo8z4t_Whitepaper.pdf';
@@ -75,7 +75,7 @@ export const Footer = () => {
             <h4 className="text-white font-bold mb-4">Community</h4>
             <div className="flex gap-4">
               <a
-                href="https://twitter.com"
+                href="https://x.com/auralisuniverse"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full glass-effect border border-white/10 flex items-center justify-center hover:bg-[#d4a853]/20 hover:border-[#d4a853]/50 transition-all"
@@ -83,20 +83,12 @@ export const Footer = () => {
                 <Twitter className="w-5 h-5 text-gray-400 hover:text-[#d4a853]" />
               </a>
               <a
-                href="https://t.me"
+                href="https://t.me/auralisuniverse"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full glass-effect border border-white/10 flex items-center justify-center hover:bg-[#4dd4e8]/20 hover:border-[#4dd4e8]/50 transition-all"
               >
                 <Send className="w-5 h-5 text-gray-400 hover:text-[#4dd4e8]" />
-              </a>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full glass-effect border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/30 transition-all"
-              >
-                <Github className="w-5 h-5 text-gray-400 hover:text-white" />
               </a>
             </div>
           </motion.div>
@@ -124,7 +116,7 @@ export const Footer = () => {
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-3">
-              Payments accepted: USDT (SPL)
+              Payments accepted: USDT
             </p>
           </motion.div>
         </div>

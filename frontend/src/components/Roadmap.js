@@ -8,7 +8,7 @@ const roadmapData = [
     title: 'Messenger Launch',
     items: [
       'Launch messenger (chats, groups, channels)',
-      'Airdrop phase 1 (100-500 ARA for activity)',
+      'Airdrop phase 1 (1000-5000 ARA for activity)',
       'Basic 3D avatars',
     ],
     status: 'current',

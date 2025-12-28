@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Globe, Users, Wallet } from 'lucide-react';
+import { Sparkles, Globe, Wallet } from 'lucide-react';
 import { Button } from './ui/button';
 import { useWallet } from '../context/WalletContext';
 
 const AVATAR_URL = 'https://customer-assets.emergentagent.com/job_auralis-app/artifacts/54orsfy0_7a153b1b-b478-48c5-a9e3-246632224b62.jpg';
 
 export const Hero = ({ onBuyClick }) => {
-  const { isConnected, walletAddress, walletType, connectPhantom, connectSolflare, disconnect } = useWallet();
+  const { isConnected, walletAddress, walletType, connectPhantom, connectMetaMask, disconnect } = useWallet();
 
   return (
     <div className="relative min-h-screen flex items-center overflow-hidden aurora-bg globe-pattern">
@@ -66,11 +66,11 @@ export const Hero = ({ onBuyClick }) => {
                     Connect Phantom
                   </Button>
                   <Button 
-                    onClick={connectSolflare}
-                    className="h-14 px-6 text-base font-bold bg-gradient-to-r from-[#FC8E00] to-[#FFA200] hover:from-[#FFB033] hover:to-[#FFB833] text-white rounded-2xl transition-all hover:scale-105"
+                    onClick={connectMetaMask}
+                    className="h-14 px-6 text-base font-bold bg-gradient-to-r from-[#E2761B] to-[#F6851B] hover:from-[#F5923B] hover:to-[#FFA03B] text-white rounded-2xl transition-all hover:scale-105"
                   >
                     <Wallet className="w-5 h-5 mr-2" />
-                    Connect Solflare
+                    Connect MetaMask
                   </Button>
                 </div>
               ) : (
@@ -152,19 +152,6 @@ export const Hero = ({ onBuyClick }) => {
                   className="w-full h-full object-cover"
                 />
               </div>
-
-              {/* Floating badge */}
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.8 }}
-                className="absolute -right-4 top-1/4 glass-effect rounded-xl px-4 py-2 border border-[#d4a853]/30"
-              >
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#4dd4e8]" />
-                  <span className="text-sm font-semibold text-white">Global Network</span>
-                </div>
-              </motion.div>
             </div>
           </motion.div>
         </div>
