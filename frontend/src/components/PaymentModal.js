@@ -1,32 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, QrCode } from 'lucide-react';
+import { X, Copy, Check, Wallet as WalletIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import { useWallet } from '../context/WalletContext';
 
 const PAYMENT_ADDRESS = '0x794057867f5bd5ea24a9c2152bfbe9bd30b01c7041e17619c6b34ef3a3897501';
-const QR_CODE_URL = 'https://customer-assets.emergentagent.com/job_auralis-app/artifacts/99urshmo_photo_2025-12-28_22-11-19.jpg';
 
 export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }) => {
   const [copied, setCopied] = useState(false);
-  const [showQR, setShowQR] = useState(false);
-  const [countdown, setCountdown] = useState(15 * 60); // 15 minutes
-
-  useEffect(() => {
-    if (!isOpen) return;
-    
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 0) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isOpen]);
+  const [isPaying, setIsPaying] = useState(false);
+  const { selectedWallet } = useWallet();
 
   const copyAddress = () => {
     navigator.clipboard.writeText(PAYMENT_ADDRESS);
@@ -35,10 +19,72 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const handlePayment = async () => {
+    setIsPaying(true);
+    
+    try {
+      if (selectedWallet === 'aptos' && window.aptos) {
+        // Aptos/Petra Wallet payment
+        const transaction = {
+          type: 'entry_function_payload',
+          function: '0x1::coin::transfer',
+          type_arguments: ['0x1::aptos_coin::AptosCoin'],
+          arguments: [
+            PAYMENT_ADDRESS,
+            Math.floor(orderDetails.totalAmount * 100000000) // Convert to Octas (APT smallest unit)
+          ]
+        };
+        
+        const response = await window.aptos.signAndSubmitTransaction(transaction);
+        
+        if (response.hash) {
+          toast.success(
+            <div>
+              <div className="font-bold">Транзакция отправлена!</div>
+              <div className="text-xs mt-1">Hash: {response.hash.substring(0, 16)}...</div>
+            </div>
+          );
+          onConfirmPayment();
+        }
+      } else if (selectedWallet === 'metamask' && window.ethereum) {
+        // MetaMask payment
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        
+        if (accounts.length === 0) {
+          toast.error('Пожалуйста, подключите MetaMask');
+          setIsPaying(false);
+          return;
+        }
+
+        const transactionParameters = {
+          from: accounts[0],
+          to: PAYMENT_ADDRESS,
+          value: '0x' + Math.floor(orderDetails.totalAmount * 1e18).toString(16), // Convert to Wei
+        };
+
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [transactionParameters],
+        });
+
+        if (txHash) {
+          toast.success(
+            <div>
+              <div className="font-bold">Транзакция отправлена!</div>
+              <div className="text-xs mt-1">Hash: {txHash.substring(0, 16)}...</div>
+            </div>
+          );
+          onConfirmPayment();
+        }
+      } else {
+        toast.error('Кошелёк не подключен');
+      }
+    } catch (error) {
+      console.error('Payment failed:', error);
+      toast.error('Ошибка оплаты: ' + (error.message || 'Неизвестная ошибка'));
+    } finally {
+      setIsPaying(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -73,13 +119,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">Оплата заказа</h2>
-            <p className="text-gray-400">Переведите {orderDetails.totalAmount} USDT на адрес ниже</p>
-          </div>
-
-          {/* Timer */}
-          <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-xl p-4 mb-6 text-center">
-            <div className="text-sm text-gray-300 mb-1">Время на оплату</div>
-            <div className="text-3xl font-bold text-orange-400">{formatTime(countdown)}</div>
+            <p className="text-gray-400">Подтвердите транзакцию в вашем кошельке</p>
           </div>
 
           {/* Order Details */}
@@ -102,100 +142,61 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
             </div>
           </div>
 
-          {/* Payment Methods Tabs */}
-          <div className="flex gap-2 mb-6">
-            <Button
-              onClick={() => setShowQR(false)}
-              variant={!showQR ? 'default' : 'outline'}
-              className={`flex-1 h-12 ${
-                !showQR
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600'
-                  : 'bg-white/5 border-white/20 text-gray-300'
-              }`}
-            >
-              Адрес кошелька
-            </Button>
-            <Button
-              onClick={() => setShowQR(true)}
-              variant={showQR ? 'default' : 'outline'}
-              className={`flex-1 h-12 ${
-                showQR
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600'
-                  : 'bg-white/5 border-white/20 text-gray-300'
-              }`}
-            >
-              <QrCode className="w-5 h-5 mr-2" />
-              QR-код
-            </Button>
+          {/* Payment Address (for reference) */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              Адрес получателя:
+            </label>
+            <div className="bg-black/40 border border-purple-500/30 rounded-xl p-4">
+              <div className="flex items-center justify-between gap-3">
+                <code className="text-xs text-purple-300 font-mono break-all flex-1">
+                  {PAYMENT_ADDRESS}
+                </code>
+                <button
+                  onClick={copyAddress}
+                  className="flex-shrink-0 w-10 h-10 rounded-lg bg-purple-600 hover:bg-purple-700 flex items-center justify-center transition-colors"
+                >
+                  {copied ? (
+                    <Check className="w-5 h-5 text-white" />
+                  ) : (
+                    <Copy className="w-5 h-5 text-white" />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-
-          {/* Payment Address or QR */}
-          {!showQR ? (
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-3">
-                Aptos (APT) Адрес для оплаты:
-              </label>
-              <div className="bg-black/40 border border-purple-500/30 rounded-xl p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <code className="text-xs text-purple-300 font-mono break-all flex-1">
-                    {PAYMENT_ADDRESS}
-                  </code>
-                  <button
-                    onClick={copyAddress}
-                    className="flex-shrink-0 w-10 h-10 rounded-lg bg-purple-600 hover:bg-purple-700 flex items-center justify-center transition-colors"
-                  >
-                    {copied ? (
-                      <Check className="w-5 h-5 text-white" />
-                    ) : (
-                      <Copy className="w-5 h-5 text-white" />
-                    )}
-                  </button>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                ⚠️ Отправляйте только USDT через сеть Aptos на этот адрес
-              </p>
-            </div>
-          ) : (
-            <div className="mb-6 text-center">
-              <div className="inline-block bg-white p-4 rounded-2xl">
-                <img
-                  src={QR_CODE_URL}
-                  alt="QR Code"
-                  className="w-64 h-64 object-contain"
-                />
-              </div>
-              <p className="text-sm text-gray-400 mt-3">
-                Отсканируйте QR-код для оплаты
-              </p>
-            </div>
-          )}
 
           {/* Instructions */}
           <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-4 mb-6">
             <h3 className="text-white font-bold mb-2 flex items-center gap-2">
-              <span>📝</span>
-              Инструкция по оплате:
+              <WalletIcon className="w-5 h-5 text-blue-400" />
+              Автоматическая оплата
             </h3>
-            <ol className="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-              <li>Скопируйте адрес кошелька или отсканируйте QR-код</li>
-              <li>Отправьте {orderDetails.totalAmount} USDT через сеть Aptos</li>
-              <li>Нажмите "Я оплатил" после завершения транзакции</li>
-              <li>Ваши токены будут начислены в Q2 2026</li>
-            </ol>
+            <p className="text-sm text-gray-300">
+              Нажмите кнопку ниже, чтобы открыть ваш кошелёк и подтвердить транзакцию. 
+              Платёж будет отправлен автоматически.
+            </p>
           </div>
 
-          {/* Confirm Button */}
+          {/* Payment Button */}
           <Button
-            onClick={onConfirmPayment}
+            onClick={handlePayment}
+            disabled={isPaying}
             data-testid="confirm-payment-button"
-            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl shadow-lg"
+            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl shadow-lg"
           >
-            ✓ Я оплатил
+            {isPaying ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                Обработка...
+              </div>
+            ) : (
+              '💳 Оплатить сейчас'
+            )}
           </Button>
 
           <p className="text-xs text-center text-gray-500 mt-4">
-            После оплаты обработка может занять до 24 часов
+            Токены будут автоматически распределены после окончания presale
           </p>
         </motion.div>
       </div>

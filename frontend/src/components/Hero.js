@@ -100,7 +100,7 @@ export const Hero = ({ onBuyClick }) => {
               >
                 <div className="relative w-full aspect-square rounded-3xl overflow-hidden border-4 border-purple-500/20 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
                   <img
-                    src="https://images.pexels.com/photos/11798029/pexels-photo-11798029.jpeg"
+                    src="https://images.pexels.com/photos/8832742/pexels-photo-8832742.jpeg"
                     alt="3D Avatar"
                     className="w-full h-full object-cover"
                   />
