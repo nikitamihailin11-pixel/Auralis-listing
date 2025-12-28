@@ -1,68 +1,95 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Manrope:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-    :root {
-        /* Ethereal Future Theme */
-        --background: 220 26% 8%;  /* #0F1420 Deep Slate */
-        --foreground: 0 0% 95%; /* #F2F2F2 */
-        
-        --card: 220 24% 12%;  /* #171D2B */
-        --card-foreground: 0 0% 100%;
-        
-        --primary: 270 70% 65%;  /* #9D7FFF Violet */
-        --primary-foreground: 0 0% 100%;
-        
-        --secondary: 190 85% 60%;  /* #4DD4E8 Cyan */
-        --secondary-foreground: 220 26% 8%;
-        
-        --accent: 280 80% 55%;  /* #B34DFF Purple */
-        --accent-foreground: 0 0% 100%;
-        
-        --muted: 220 20% 16%;
-        --muted-foreground: 0 0% 60%;
-        
-        --border: 220 18% 22%;  /* #2A3241 */
-        --input: 220 24% 12%;
-        --ring: 270 70% 65%;
-        
-        --radius: 1.2rem;
-    }
+  :root {
+    /* Global Community Theme - Based on Avatar */
+    --background: 210 30% 8%;  /* Deep blue-gray */
+    --foreground: 0 0% 98%;
+    
+    --card: 210 25% 12%;
+    --card-foreground: 0 0% 100%;
+    
+    --primary: 45 90% 55%;  /* Gold accent */
+    --primary-foreground: 210 30% 8%;
+    
+    --secondary: 195 90% 60%;  /* Sky blue */
+    --secondary-foreground: 210 30% 8%;
+    
+    --accent: 25 80% 50%;  /* Warm brown-orange */
+    --accent-foreground: 0 0% 100%;
+    
+    --muted: 210 20% 18%;
+    --muted-foreground: 0 0% 65%;
+    
+    --border: 210 20% 20%;
+    --input: 210 25% 12%;
+    --ring: 45 90% 55%;
+    
+    --radius: 1rem;
+  }
 }
 
 @layer base {
-    * { @apply border-border; }
-    body {
-        @apply bg-background text-foreground;
-        font-family: 'Manrope', sans-serif;
-    }
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'Outfit', sans-serif;
-    }
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Manrope', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
 }
 
+/* Custom scrollbar */
 ::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: #0F1420; }
-::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #9D7FFF, #4DD4E8); border-radius: 5px; }
+::-webkit-scrollbar-track { background: #0d1117; }
+::-webkit-scrollbar-thumb { 
+  background: linear-gradient(to bottom, #d4a853, #4dd4e8); 
+  border-radius: 5px; 
+}
 
 ::selection {
-  background: rgba(157, 127, 255, 0.3);
+  background: rgba(212, 168, 83, 0.3);
   color: #fff;
 }
 
+/* Glass effect */
 .glass-effect {
-  background: rgba(23, 29, 43, 0.6);
+  background: rgba(13, 23, 35, 0.7);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Aurora background */
 .aurora-bg {
-  background: linear-gradient(135deg, #0F1420 0%, #1a1f3a 25%, #252945 50%, #1a1f3a 75%, #0F1420 100%);
+  background: linear-gradient(135deg, 
+    #0d1117 0%, 
+    #162234 25%, 
+    #1a3050 50%, 
+    #162234 75%, 
+    #0d1117 100%);
 }
 
+/* Globe pattern background */
+.globe-pattern {
+  background-image: 
+    radial-gradient(ellipse at 70% 20%, rgba(77, 212, 232, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 80%, rgba(212, 168, 83, 0.1) 0%, transparent 40%);
+}
+
+/* Network lines pattern */
+.network-lines {
+  background-image: 
+    linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.03) 50%, transparent 55%),
+    linear-gradient(-45deg, transparent 45%, rgba(255,255,255,0.03) 50%, transparent 55%);
+  background-size: 30px 30px;
+}
+
+/* Float animation */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-15px); }
@@ -72,5 +99,55 @@
   animation: float 4s ease-in-out infinite;
 }
 
-.glow-violet { box-shadow: 0 0 30px rgba(157,127,255,0.4); }
-.glow-cyan { box-shadow: 0 0 30px rgba(77,212,232,0.4); }
+/* Pulse glow animation */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 168, 83, 0.4); }
+  50% { box-shadow: 0 0 40px rgba(212, 168, 83, 0.6); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Glow effects */
+.glow-gold { box-shadow: 0 0 30px rgba(212, 168, 83, 0.4); }
+.glow-sky { box-shadow: 0 0 30px rgba(77, 212, 232, 0.4); }
+.glow-warm { box-shadow: 0 0 30px rgba(200, 120, 60, 0.4); }
+
+/* Gradient text */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #d4a853 0%, #f5d485 50%, #d4a853 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-sky {
+  background: linear-gradient(135deg, #4dd4e8 0%, #87e8f5 50%, #4dd4e8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Solana wallet adapter styles override */
+.wallet-adapter-button {
+  background: linear-gradient(135deg, #d4a853 0%, #c87840 100%) !important;
+  border-radius: 1rem !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+.wallet-adapter-button:hover {
+  background: linear-gradient(135deg, #e5b964 0%, #d98950 100%) !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: rgba(13, 23, 35, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.wallet-adapter-modal-container {
+  background: #162234 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1.5rem !important;
+}
