@@ -79,27 +79,29 @@ export function WalletProvider({ children }) {
     }
 
     try {
-      const response = await window.aptos.connect();
+      // Check if already connected
+      const isConnected = await window.aptos.isConnected();
       
-      if (response.address) {
-        setAptosAccount(response.address);
+      if (!isConnected) {
+        // Request connection
+        await window.aptos.connect();
+      }
+      
+      // Get account info
+      const account = await window.aptos.account();
+      
+      if (account && account.address) {
+        setAptosAccount(account.address);
         setIsAptosConnected(true);
         localStorage.setItem('aptosConnected', 'true');
         
-        // Fetch balance
-        try {
-          const balanceResponse = await window.aptos.account();
-          if (balanceResponse) {
-            setAptosBalance('0.0000'); // Mock balance for now
-          }
-        } catch (err) {
-          console.error('Failed to fetch Aptos balance:', err);
-        }
+        // Mock balance for now
+        setAptosBalance('0.0000');
         
         // Save to backend
         try {
           await axios.post(`${API}/wallets/connect`, {
-            address: response.address,
+            address: account.address,
             blockchain: 'aptos',
             balance: 0
           });
@@ -109,7 +111,16 @@ export function WalletProvider({ children }) {
       }
     } catch (error) {
       console.error('Failed to connect Petra:', error);
-      alert('Failed to connect Petra wallet');
+      
+      // More specific error handling
+      if (error.message && error.message.includes('User rejected')) {
+        alert('Connection rejected. Please try again.');
+      } else if (error.message && error.message.includes('Not installed')) {
+        alert('Petra Wallet is not installed. Please install it first.');
+        window.open('https://petra.app/', '_blank');
+      } else {
+        alert('Failed to connect Petra wallet: ' + (error.message || 'Unknown error'));
+      }
     }
   };
 
