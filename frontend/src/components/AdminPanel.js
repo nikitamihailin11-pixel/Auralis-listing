@@ -23,7 +23,7 @@ export const AdminPanel = ({ onBack }) => {
       setOrders(response.data);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
-      toast.error('Не удалось загрузить ордера');
+      toast.error('Failed to load orders');
     } finally {
       setIsLoading(false);
     }
