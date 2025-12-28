@@ -7,13 +7,19 @@ import { useWallet } from '../context/WalletContext';
 
 export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }) => {
   const [isPaying, setIsPaying] = useState(false);
-  const { sendUSDTPayment } = useWallet();
+  const { selectedWallet, sendPolygonPayment, sendUSDTPayment } = useWallet();
 
   const handlePayment = async () => {
     setIsPaying(true);
     
     try {
-      const response = await sendUSDTPayment(orderDetails.totalAmount);
+      let response;
+      
+      if (selectedWallet === 'metamask') {
+        response = await sendPolygonPayment(orderDetails.totalAmount);
+      } else {
+        response = await sendUSDTPayment(orderDetails.totalAmount);
+      }
       
       if (response && response.hash) {
         toast.success(
@@ -33,7 +39,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
         if (error.message.includes('User rejected')) {
           errorMessage = 'Transaction was rejected';
         } else if (error.message.includes('Insufficient')) {
-          errorMessage = 'Insufficient USDT balance';
+          errorMessage = 'Insufficient balance';
         } else {
           errorMessage = error.message;
         }
@@ -46,6 +52,9 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
   };
 
   if (!isOpen) return null;
+
+  const paymentNetwork = selectedWallet === 'metamask' ? 'Polygon (POL)' : 'Aptos (USDT)';
+  const paymentCurrency = selectedWallet === 'metamask' ? 'MATIC' : 'USDT';
 
   return (
     <AnimatePresence>
@@ -77,7 +86,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">Confirm Payment</h2>
-            <p className="text-gray-400">Pay with USDT on Aptos Network</p>
+            <p className="text-gray-400">Pay with {paymentCurrency} on {paymentNetwork}</p>
           </div>
 
           {/* Order Details */}
@@ -91,10 +100,14 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
                 <span className="text-gray-400">Price per token:</span>
                 <span className="font-semibold text-white">${orderDetails.pricePerToken}</span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Network:</span>
+                <span className="font-semibold text-white">{paymentNetwork}</span>
+              </div>
               <div className="border-t border-white/10 pt-3 flex justify-between">
                 <span className="font-bold text-white">Total to Pay:</span>
                 <span className="font-bold text-2xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  ${orderDetails.totalAmount} USDT
+                  ${orderDetails.totalAmount} {paymentCurrency}
                 </span>
               </div>
             </div>
@@ -104,10 +117,10 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
           <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-4 mb-6">
             <h3 className="text-white font-bold mb-2 flex items-center gap-2">
               <WalletIcon className="w-5 h-5 text-blue-400" />
-              Automatic USDT Payment
+              Automatic Payment
             </h3>
             <p className="text-sm text-gray-300">
-              Click the button below to open your Petra Wallet and confirm the USDT transaction. 
+              Click the button below to open your {selectedWallet === 'metamask' ? 'MetaMask' : 'Petra'} wallet and confirm the transaction. 
               Payment will be sent automatically to the secure address.
             </p>
           </div>
@@ -125,7 +138,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
                 Processing...
               </div>
             ) : (
-              '💳 Pay with USDT Now'
+              `💳 Pay ${orderDetails.totalAmount} ${paymentCurrency} Now`
             )}
           </Button>
 
