@@ -36,11 +36,14 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "POST /api/orders/create creates order with wallet_address, blockchain, quantity, price_per_token"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Order creation working perfectly. Successfully created order for 5000 ARA tokens at $0.01 each (total $50.00). Order created with pending status and proper fields (id, wallet_address, blockchain, quantity, total_amount, status, timestamps)."
 
   - task: "Order status update endpoint"
     implemented: true
