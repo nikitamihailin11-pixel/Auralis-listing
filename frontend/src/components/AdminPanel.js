@@ -325,7 +325,8 @@ export const AdminPanel = ({ onBack }) => {
         <div className="flex gap-2 mb-6 flex-wrap">
           {[
             { value: 'all', label: 'All' },
-            { value: 'pending', label: 'Pending' },
+            { value: 'awaiting_payment', label: 'Awaiting Payment' },
+            { value: 'payment_sent', label: 'Payment Sent' },
             { value: 'confirmed', label: 'Confirmed' },
             { value: 'failed', label: 'Failed' },
           ].map((tab) => (
@@ -361,7 +362,7 @@ export const AdminPanel = ({ onBack }) => {
                   <tr className="border-b border-white/10">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">ID</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Wallet</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Network</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">TX Hash</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Quantity ARA</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">Amount</th>
                     <th className="text-center py-3 px-4 text-sm font-semibold text-gray-400">Status</th>
@@ -381,16 +382,23 @@ export const AdminPanel = ({ onBack }) => {
                       </td>
                       <td className="py-4 px-4">
                         <code className="text-xs text-gray-300">
-                          {order.wallet_address.substring(0, 8)}...{order.wallet_address.substring(order.wallet_address.length - 6)}
+                          {order.wallet_address.substring(0, 6)}...{order.wallet_address.substring(order.wallet_address.length - 4)}
                         </code>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="text-sm text-gray-300 capitalize flex items-center gap-2">
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${order.blockchain === 'ethereum' ? 'bg-gradient-to-br from-[#627EEA] to-[#3C3C3D]' : 'bg-gradient-to-br from-[#9945FF] to-[#14F195]'}`}>
-                            <span className="text-white font-bold text-[8px]">{order.blockchain === 'ethereum' ? 'ETH' : 'SOL'}</span>
-                          </div>
-                          {order.blockchain}
-                        </span>
+                        {order.tx_hash ? (
+                          <a
+                            href={`https://etherscan.io/tx/${order.tx_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-[#4dd4e8] hover:underline"
+                          >
+                            {order.tx_hash.substring(0, 8)}...
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-gray-500">No TX</span>
+                        )}
                       </td>
                       <td className="py-4 px-4 text-right">
                         {editingOrder === order.id ? (
