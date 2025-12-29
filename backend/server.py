@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime, timezone
 from enum import Enum
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -23,6 +24,10 @@ wallets_collection = db.wallets
 orders_collection = db.orders
 settings_collection = db.settings
 
+# Ethereum config
+ETH_PAYMENT_ADDRESS = '0x0825d5461abffd07860f28b1b78448cc7ac00239'.lower()
+ETH_USDT_CONTRACT = '0xdAC17F958D2ee523a2206206994597C13D831ec7'.lower()
+
 # Create the main app
 app = FastAPI(title="Auralis Token Sale API", version="1.0.0")
 
@@ -36,6 +41,8 @@ class BlockchainType(str, Enum):
 
 class OrderStatus(str, Enum):
     PENDING = "pending"
+    AWAITING_PAYMENT = "awaiting_payment"
+    PAYMENT_SENT = "payment_sent"
     CONFIRMED = "confirmed"
     FAILED = "failed"
 
@@ -68,6 +75,7 @@ class OrderResponse(BaseModel):
     price_per_token: float
     total_amount: float
     status: OrderStatus
+    tx_hash: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
