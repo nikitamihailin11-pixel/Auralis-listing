@@ -21,6 +21,7 @@ db = client[os.environ['DB_NAME']]
 # Collections
 wallets_collection = db.wallets
 orders_collection = db.orders
+settings_collection = db.settings
 
 # Create the main app
 app = FastAPI(title="Auralis Token Sale API", version="1.0.0")
