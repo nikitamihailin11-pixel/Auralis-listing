@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { Card } from './ui/card';
 import { useWallet } from '../context/WalletContext';
 import { SuccessModal } from './SuccessModal';
+import { TransactionStatusModal } from './TransactionStatusModal';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -25,6 +26,12 @@ export const TokenSale = () => {
   const [completedOrder, setCompletedOrder] = useState(null);
   const [stats, setStats] = useState({ total_ara_sold: 0, tokens_for_sale: 400000000 });
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  
+  // Transaction status state
+  const [showTxModal, setShowTxModal] = useState(false);
+  const [txStep, setTxStep] = useState('creating');
+  const [txError, setTxError] = useState('');
+  const [currentTxHash, setCurrentTxHash] = useState('');
 
   const totalCost = quantity ? (parseFloat(quantity) * ARA_PRICE).toFixed(2) : '0.00';
   const tokensForSale = stats.tokens_for_sale || 400000000;
