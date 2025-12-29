@@ -426,18 +426,35 @@ export const AdminPanel = ({ onBack }) => {
                       <td className="py-4 px-4 text-center">
                         <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(order.status)}`}>
                           {getStatusIcon(order.status)}
-                          {order.status}
+                          {order.status.replace('_', ' ')}
                         </span>
                       </td>
                       <td className="py-4 px-4">
-                        <div className="flex gap-1 justify-center">
-                          {order.status === 'pending' && (
+                        <div className="flex gap-1 justify-center flex-wrap">
+                          {/* Verify Payment Button - for payment_sent orders */}
+                          {order.status === 'payment_sent' && order.tx_hash && (
+                            <Button
+                              size="sm"
+                              onClick={() => verifyPayment(order.id)}
+                              disabled={verifyingOrder === order.id}
+                              className="bg-purple-600 hover:bg-purple-700 text-white h-8 px-2"
+                              title="Verify Payment"
+                            >
+                              {verifyingOrder === order.id ? (
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Search className="w-3 h-3" />
+                              )}
+                            </Button>
+                          )}
+                          {/* Manual Confirm/Reject */}
+                          {(order.status === 'payment_sent' || order.status === 'awaiting_payment' || order.status === 'pending') && (
                             <>
                               <Button
                                 size="sm"
                                 onClick={() => updateOrderStatus(order.id, 'confirmed')}
                                 className="bg-green-600 hover:bg-green-700 text-white h-8 w-8 p-0"
-                                title="Confirm"
+                                title="Manual Confirm"
                               >
                                 ✓
                               </Button>
