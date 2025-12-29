@@ -160,13 +160,18 @@ async def get_wallet(address: str):
 async def create_order(request: OrderCreationRequest):
     """Create a new ARA token purchase order"""
     try:
-        # Verify wallet exists
+        # Auto-create wallet if not exists
         wallet = await wallets_collection.find_one({"address": request.wallet_address})
         if not wallet:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Wallet not found. Please connect wallet first."
-            )
+            now = datetime.now(timezone.utc)
+            wallet_data = {
+                "address": request.wallet_address,
+                "blockchain": request.blockchain.value,
+                "balance": 0,
+                "connected_at": now.isoformat(),
+                "last_activity": now.isoformat()
+            }
+            await wallets_collection.insert_one(wallet_data)
         
         # Calculate total amount
         total_amount = request.quantity * request.price_per_token
