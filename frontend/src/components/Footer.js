@@ -23,7 +23,7 @@ export const Footer = () => {
             </h3>
             <p className="text-gray-400 text-sm">
               Your portal to the Web3 metaverse<br />
-              Built on Solana blockchain
+              Built on Ethereum blockchain
             </p>
           </motion.div>
 
@@ -106,12 +106,12 @@ export const Footer = () => {
             </h4>
             <div className="glass-effect rounded-xl p-4 border border-[#4dd4e8]/20">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#9945FF] to-[#14F195] flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">SOL</span>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#627EEA] to-[#3C3C3D] flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">ETH</span>
                 </div>
                 <div>
-                  <p className="text-white font-semibold text-sm">Solana</p>
-                  <p className="text-gray-400 text-xs">Mainnet Beta</p>
+                  <p className="text-white font-semibold text-sm">Ethereum</p>
+                  <p className="text-gray-400 text-xs">Mainnet</p>
                 </div>
               </div>
             </div>
