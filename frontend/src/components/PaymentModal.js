@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { useWallet } from '../context/WalletContext';
 
-const PAYMENT_ADDRESS = 'C8G8Wir2RBNW5bwwrtS4wcpapKqw5abNMXdVjQSGsS21';
+const PAYMENT_ADDRESS = '0x0825d5461abffd07860f28b1b78448cc7ac00239';
 
 export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }) => {
   const [isPaying, setIsPaying] = useState(false);
@@ -63,7 +63,7 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
           {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">Confirm Payment</h2>
-            <p className="text-gray-400">Pay with {walletType || 'Solana Wallet'}</p>
+            <p className="text-gray-400">Pay with {walletType || 'MetaMask'} (USDT on Ethereum)</p>
           </div>
 
           {/* Order details */}
@@ -93,14 +93,14 @@ export const PaymentModal = ({ isOpen, onClose, orderDetails, onConfirmPayment }
               Payment Details
             </h3>
             <p className="text-sm text-gray-300 mb-2">
-              Funds will be sent to the following Solana address:
+              USDT will be sent to the following Ethereum address:
             </p>
             <div className="flex items-center gap-2 bg-black/30 rounded-lg p-2">
               <code className="text-xs text-[#4dd4e8] font-mono flex-1 break-all">
                 {PAYMENT_ADDRESS}
               </code>
               <a 
-                href={`https://solscan.io/account/${PAYMENT_ADDRESS}`}
+                href={`https://etherscan.io/address/${PAYMENT_ADDRESS}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-[#4dd4e8] transition-colors"
