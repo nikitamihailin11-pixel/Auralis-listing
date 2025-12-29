@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Shield, Trash2, Edit, Plus, Settings, Save } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Shield, Trash2, Edit, Plus, Settings, Save, ExternalLink, Search, Wallet, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Input } from './ui/input';
@@ -22,6 +22,7 @@ export const AdminPanel = ({ onBack }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showManualOrder, setShowManualOrder] = useState(false);
   const [manualOrderData, setManualOrderData] = useState({ wallet_address: '', quantity: '' });
+  const [verifyingOrder, setVerifyingOrder] = useState(null);
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -51,6 +52,25 @@ export const AdminPanel = ({ onBack }) => {
     fetchOrders();
     fetchStats();
   }, []);
+
+  const verifyPayment = async (orderId) => {
+    setVerifyingOrder(orderId);
+    try {
+      const response = await axios.post(`${API}/orders/${orderId}/verify-payment`);
+      if (response.data.verified) {
+        toast.success('Payment verified! Order confirmed.');
+      } else {
+        toast.warning(`Verification: ${response.data.error || 'Pending'}`);
+      }
+      fetchOrders();
+      fetchStats();
+    } catch (error) {
+      console.error('Failed to verify payment:', error);
+      toast.error('Verification failed');
+    } finally {
+      setVerifyingOrder(null);
+    }
+  };
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
