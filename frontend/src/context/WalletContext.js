@@ -1,18 +1,14 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Payment addresses
-const SOLANA_PAYMENT_ADDRESS = 'C8G8Wir2RBNW5bwwrtS4wcpapKqw5abNMXdVjQSGsS21';
+// Payment address for ETH network
 const ETH_PAYMENT_ADDRESS = '0x0825d5461abffd07860f28b1b78448cc7ac00239';
 
 // USDT Contract on Ethereum Mainnet
 const ETH_USDT_CONTRACT = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
-
-const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
 
 const WalletContext = createContext();
 
@@ -23,7 +19,6 @@ export function WalletProvider({ children }) {
   const [userOrders, setUserOrders] = useState([]);
   const [userStats, setUserStats] = useState({ totalTokens: 0, totalSpent: 0 });
 
-  const getPhantom = () => window.solana?.isPhantom ? window.solana : null;
   const getMetaMask = () => window.ethereum?.isMetaMask ? window.ethereum : null;
 
   const fetchUserOrders = useCallback(async (address) => {
@@ -45,28 +40,6 @@ export function WalletProvider({ children }) {
       console.error('Failed to save wallet:', error);
     }
   }, []);
-
-  // Connect Phantom
-  const connectPhantom = async () => {
-    const phantom = getPhantom();
-    if (!phantom) {
-      window.open('https://phantom.app/', '_blank');
-      return;
-    }
-    try {
-      const response = await phantom.connect();
-      const address = response.publicKey.toString();
-      setWalletAddress(address);
-      setWalletType('Phantom');
-      setIsConnected(true);
-      localStorage.setItem('walletConnected', 'phantom');
-      localStorage.setItem('walletAddress', address);
-      await saveWalletToBackend(address, 'solana');
-      await fetchUserOrders(address);
-    } catch (error) {
-      console.error('Failed to connect Phantom:', error);
-    }
-  };
 
   // Connect MetaMask
   const connectMetaMask = async () => {
@@ -102,10 +75,6 @@ export function WalletProvider({ children }) {
 
   // Disconnect
   const disconnect = async () => {
-    const phantom = getPhantom();
-    if (walletType === 'Phantom' && phantom) {
-      try { await phantom.disconnect(); } catch (e) {}
-    }
     setWalletAddress(null);
     setWalletType(null);
     setIsConnected(false);
