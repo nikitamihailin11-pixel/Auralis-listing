@@ -220,8 +220,6 @@ export const TokenSale = () => {
           }, 3000);
         }
       }
-        }
-      }
     } catch (error) {
       console.error('Purchase error:', error);
       
