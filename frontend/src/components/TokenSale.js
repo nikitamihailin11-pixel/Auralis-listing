@@ -90,6 +90,8 @@ export const TokenSale = () => {
     setCurrentTxHash('');
     
     let orderId = null;
+    let txWasSent = false; // Track if transaction was actually sent
+    let txHash = null;
     
     try {
       // Step 1: Create order (awaiting_payment status)
@@ -107,99 +109,54 @@ export const TokenSale = () => {
       
       const paymentResult = await sendPayment(usdtAmount);
       
+      // Only proceed if we got a transaction hash
       if (paymentResult && paymentResult.hash) {
-        setCurrentTxHash(paymentResult.hash);
+        txWasSent = true;
+        txHash = paymentResult.hash;
+        setCurrentTxHash(txHash);
         setTxStep('sending');
         
         // Step 3: Submit transaction hash for verification
         await axios.put(`${API}/orders/${orderId}/submit-payment`, {
-          tx_hash: paymentResult.hash
+          tx_hash: txHash
         });
 
-        // Step 4: Verify payment on blockchain (backend will retry automatically)
+        // Step 4: Verify payment on blockchain
         setTxStep('verifying');
         
         try {
-          // Backend will try for ~30 seconds with retries
           const verifyResponse = await axios.post(`${API}/orders/${orderId}/verify-payment`, {}, {
-            timeout: 60000 // 60 second timeout for retries
+            timeout: 60000
           });
           
           console.log('Verify response:', verifyResponse.data);
           
-          // Check if verified OR status is confirmed
-          if (verifyResponse.data.verified || verifyResponse.data.status === 'confirmed') {
-            // Payment verified successfully - tokens issued!
-            setTxStep('success');
-            
-            await fetchUserOrders(walletAddress);
-            const statsResponse = await axios.get(`${API}/stats`);
-            setStats(statsResponse.data);
+          // Transaction was sent - show success
+          setTxStep('success');
+          
+          await fetchUserOrders(walletAddress);
+          const statsResponse = await axios.get(`${API}/stats`);
+          setStats(statsResponse.data);
 
-            setCompletedOrder({
-              id: orderId,
-              quantity: parseFloat(quantity),
-              pricePerToken: ARA_PRICE,
-              totalAmount: totalCost,
-              walletAddress: walletAddress,
-              txHash: paymentResult.hash,
-            });
-            
-            setQuantity('');
-            
-            // Show success for 3 seconds then show success modal
-            setTimeout(() => {
-              setShowTxModal(false);
-              setShowSuccessModal(true);
-            }, 3000);
-          } else if (verifyResponse.data.pending) {
-            // Transaction still pending on blockchain - but will be confirmed soon
-            // Show success anyway since transaction was sent
-            setTxStep('success');
-            
-            setCompletedOrder({
-              id: orderId,
-              quantity: parseFloat(quantity),
-              pricePerToken: ARA_PRICE,
-              totalAmount: totalCost,
-              walletAddress: walletAddress,
-              txHash: paymentResult.hash,
-            });
-            
-            await fetchUserOrders(walletAddress);
-            setQuantity('');
-            
-            setTimeout(() => {
-              setShowTxModal(false);
-              setShowSuccessModal(true);
-            }, 3000);
-          } else {
-            // Some error but transaction was sent - still show success
-            // Backend will confirm it eventually
-            console.log('Verification issue but tx sent:', verifyResponse.data);
-            setTxStep('success');
-            
-            setCompletedOrder({
-              id: orderId,
-              quantity: parseFloat(quantity),
-              pricePerToken: ARA_PRICE,
-              totalAmount: totalCost,
-              walletAddress: walletAddress,
-              txHash: paymentResult.hash,
-            });
-            
-            await fetchUserOrders(walletAddress);
-            setQuantity('');
-            
-            setTimeout(() => {
-              setShowTxModal(false);
-              setShowSuccessModal(true);
-            }, 3000);
-          }
+          setCompletedOrder({
+            id: orderId,
+            quantity: parseFloat(quantity),
+            pricePerToken: ARA_PRICE,
+            totalAmount: totalCost,
+            walletAddress: walletAddress,
+            txHash: txHash,
+          });
+          
+          setQuantity('');
+          
+          setTimeout(() => {
+            setShowTxModal(false);
+            setShowSuccessModal(true);
+          }, 3000);
+          
         } catch (verifyError) {
-          // Verification request failed but transaction was sent!
-          // Show success since money was sent
-          console.error('Verification error but tx sent:', verifyError);
+          // Verification failed but transaction WAS sent
+          console.error('Verification error but tx was sent:', verifyError);
           setTxStep('success');
           
           setCompletedOrder({
@@ -208,7 +165,7 @@ export const TokenSale = () => {
             pricePerToken: ARA_PRICE,
             totalAmount: totalCost,
             walletAddress: walletAddress,
-            txHash: paymentResult.hash,
+            txHash: txHash,
           });
           
           await fetchUserOrders(walletAddress);
@@ -219,49 +176,57 @@ export const TokenSale = () => {
             setShowSuccessModal(true);
           }, 3000);
         }
+      } else {
+        // No transaction hash - payment failed
+        throw new Error('Transaction failed - no hash received');
       }
     } catch (error) {
       console.error('Purchase error:', error);
       
-      // Only show error and mark as failed if transaction was NOT sent
-      if (error.message?.includes('User rejected') || error.code === 4001) {
-        setTxStep('error');
-        setTxError('Transaction was cancelled by user.');
+      // Show error ONLY if transaction was NOT sent
+      if (!txWasSent) {
+        if (error.message?.includes('User rejected') || error.code === 4001) {
+          setTxStep('error');
+          setTxError('Transaction was cancelled by user.');
+        } else if (error.message?.includes('insufficient')) {
+          setTxStep('error');
+          setTxError('Insufficient USDT balance in your wallet.');
+        } else {
+          setTxStep('error');
+          setTxError(error.message || 'Transaction failed. Please try again.');
+        }
         
-        // Mark order as failed only if user cancelled
+        // Mark order as failed
         if (orderId) {
           try {
             await axios.put(`${API}/orders/${orderId}/status`, { status: 'failed' });
           } catch (e) {}
         }
-      } else if (error.message?.includes('insufficient')) {
-        setTxStep('error');
-        setTxError('Insufficient USDT balance in your wallet.');
         
-        if (orderId) {
-          try {
-            await axios.put(`${API}/orders/${orderId}/status`, { status: 'failed' });
-          } catch (e) {}
-        }
-      } else if (currentTxHash) {
-        // Transaction was sent but something went wrong after
-        // DO NOT mark as failed - money might have been sent!
-        setTxStep('pending_review');
+        setTimeout(() => {
+          setShowTxModal(false);
+        }, 5000);
       } else {
-        setTxStep('error');
-        setTxError(error.message || 'Transaction failed. Please try again.');
+        // Transaction WAS sent but something went wrong after - show success
+        setTxStep('success');
         
-        if (orderId) {
-          try {
-            await axios.put(`${API}/orders/${orderId}/status`, { status: 'failed' });
-          } catch (e) {}
-        }
+        setCompletedOrder({
+          id: orderId,
+          quantity: parseFloat(quantity),
+          pricePerToken: ARA_PRICE,
+          totalAmount: totalCost,
+          walletAddress: walletAddress,
+          txHash: txHash,
+        });
+        
+        await fetchUserOrders(walletAddress);
+        setQuantity('');
+        
+        setTimeout(() => {
+          setShowTxModal(false);
+          setShowSuccessModal(true);
+        }, 3000);
       }
-      
-      // Close modal after 5 seconds
-      setTimeout(() => {
-        setShowTxModal(false);
-      }, 5000);
     } finally {
       setIsLoading(false);
     }
