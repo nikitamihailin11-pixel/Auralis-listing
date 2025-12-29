@@ -160,6 +160,8 @@ export const AdminPanel = ({ onBack }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'confirmed': return 'text-green-400 bg-green-500/10 border-green-500/20';
+      case 'awaiting_payment': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+      case 'payment_sent': return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
       case 'pending': return 'text-[#d4a853] bg-[#d4a853]/10 border-[#d4a853]/20';
       case 'failed': return 'text-red-400 bg-red-500/10 border-red-500/20';
       default: return 'text-gray-400 bg-gray-500/10 border-gray-500/20';
@@ -169,6 +171,8 @@ export const AdminPanel = ({ onBack }) => {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'confirmed': return <CheckCircle className="w-4 h-4" />;
+      case 'awaiting_payment': return <Wallet className="w-4 h-4" />;
+      case 'payment_sent': return <Send className="w-4 h-4" />;
       case 'pending': return <Clock className="w-4 h-4" />;
       case 'failed': return <XCircle className="w-4 h-4" />;
       default: return <Clock className="w-4 h-4" />;
