@@ -201,7 +201,7 @@ export const TokenSale = () => {
             </div>
             <div className="flex justify-between mt-2 text-xs text-gray-500">
               <span>{stats.total_ara_sold.toLocaleString()} ARA</span>
-              <span>{TOKENS_FOR_SALE.toLocaleString()} ARA</span>
+              <span>{tokensForSale.toLocaleString()} ARA</span>
             </div>
           </div>
         </motion.div>
