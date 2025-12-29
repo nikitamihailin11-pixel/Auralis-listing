@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const ARA_PRICE = 0.01;
+const MIN_PURCHASE_USDT = 10;
 
 // Set presale end date to 127 days from now
 const PRESALE_END_DATE = new Date();
@@ -80,8 +81,13 @@ export const TokenSale = () => {
       toast.error('Please enter a valid quantity');
       return;
     }
-
+    
     const usdtAmount = parseFloat(totalCost);
+    
+    if (usdtAmount < MIN_PURCHASE_USDT) {
+      toast.error(`Minimum purchase is $${MIN_PURCHASE_USDT} USDT (${MIN_PURCHASE_USDT / ARA_PRICE} ARA)`);
+      return;
+    }
     
     setIsLoading(true);
     setShowTxModal(true);
