@@ -116,14 +116,17 @@ export const TokenSale = () => {
           tx_hash: paymentResult.hash
         });
 
-        // Step 4: Verify payment on blockchain
+        // Step 4: Verify payment on blockchain (backend will retry automatically)
         setTxStep('verifying');
         
         try {
-          const verifyResponse = await axios.post(`${API}/orders/${orderId}/verify-payment`);
+          // Backend will try for ~30 seconds with retries
+          const verifyResponse = await axios.post(`${API}/orders/${orderId}/verify-payment`, {}, {
+            timeout: 60000 // 60 second timeout for retries
+          });
           
           if (verifyResponse.data.verified) {
-            // Payment verified successfully
+            // Payment verified successfully - tokens issued!
             setTxStep('success');
             
             await fetchUserOrders(walletAddress);
@@ -146,10 +149,9 @@ export const TokenSale = () => {
               setShowTxModal(false);
               setShowSuccessModal(true);
             }, 3000);
-          } else {
-            // Payment sent but not yet verified - this is NORMAL, needs admin review
-            // DO NOT mark as failed - money was sent!
-            setTxStep('pending_review');
+          } else if (verifyResponse.data.pending) {
+            // Transaction still pending - show waiting message but tokens will be issued when confirmed
+            setTxStep('confirming');
             
             await fetchUserOrders(walletAddress);
             setQuantity('');
@@ -158,12 +160,22 @@ export const TokenSale = () => {
             setTimeout(() => {
               setShowTxModal(false);
             }, 5000);
+          } else {
+            // Verification returned error
+            setTxStep('error');
+            setTxError(verifyResponse.data.error || 'Transaction verification failed');
+            
+            await fetchUserOrders(walletAddress);
+            setQuantity('');
+            
+            setTimeout(() => {
+              setShowTxModal(false);
+            }, 5000);
           }
         } catch (verifyError) {
-          // Verification request failed - but payment was sent!
-          // Keep status as payment_sent for admin review
+          // Verification request timed out or failed
           console.error('Verification error:', verifyError);
-          setTxStep('pending_review');
+          setTxStep('confirming');
           
           await fetchUserOrders(walletAddress);
           setQuantity('');
