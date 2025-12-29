@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Shield } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Shield, Trash2, Edit, Plus, Settings, Save } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { Input } from './ui/input';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -14,6 +15,13 @@ export const AdminPanel = ({ onBack }) => {
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [newQuantity, setNewQuantity] = useState('');
+  const [tokensForSale, setTokensForSale] = useState(400000000);
+  const [newTokensForSale, setNewTokensForSale] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [showManualOrder, setShowManualOrder] = useState(false);
+  const [manualOrderData, setManualOrderData] = useState({ wallet_address: '', quantity: '' });
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -32,6 +40,8 @@ export const AdminPanel = ({ onBack }) => {
     try {
       const response = await axios.get(`${API}/stats`);
       setStats(response.data);
+      setTokensForSale(response.data.tokens_for_sale || 400000000);
+      setNewTokensForSale(response.data.tokens_for_sale?.toString() || '400000000');
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
@@ -51,6 +61,74 @@ export const AdminPanel = ({ onBack }) => {
     } catch (error) {
       console.error('Failed to update order:', error);
       toast.error('Failed to update status');
+    }
+  };
+
+  const updateOrderQuantity = async (orderId) => {
+    if (!newQuantity || parseFloat(newQuantity) < 0) {
+      toast.error('Invalid quantity');
+      return;
+    }
+    try {
+      await axios.put(`${API}/admin/orders/${orderId}/quantity`, { quantity: parseFloat(newQuantity) });
+      toast.success('Quantity updated');
+      setEditingOrder(null);
+      setNewQuantity('');
+      fetchOrders();
+      fetchStats();
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+      toast.error('Failed to update quantity');
+    }
+  };
+
+  const deleteOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to delete this order?')) return;
+    try {
+      await axios.delete(`${API}/admin/orders/${orderId}`);
+      toast.success('Order deleted');
+      fetchOrders();
+      fetchStats();
+    } catch (error) {
+      console.error('Failed to delete order:', error);
+      toast.error('Failed to delete order');
+    }
+  };
+
+  const updateTokensForSale = async () => {
+    if (!newTokensForSale || parseFloat(newTokensForSale) < 0) {
+      toast.error('Invalid value');
+      return;
+    }
+    try {
+      await axios.put(`${API}/admin/settings/tokens-for-sale`, { tokens_for_sale: parseFloat(newTokensForSale) });
+      toast.success('Tokens for sale updated');
+      fetchStats();
+    } catch (error) {
+      console.error('Failed to update tokens for sale:', error);
+      toast.error('Failed to update settings');
+    }
+  };
+
+  const createManualOrder = async () => {
+    if (!manualOrderData.wallet_address || !manualOrderData.quantity || parseFloat(manualOrderData.quantity) <= 0) {
+      toast.error('Fill in all fields correctly');
+      return;
+    }
+    try {
+      await axios.post(`${API}/admin/orders/create-manual`, {
+        wallet_address: manualOrderData.wallet_address,
+        quantity: parseFloat(manualOrderData.quantity),
+        status: 'confirmed'
+      });
+      toast.success('Manual order created');
+      setShowManualOrder(false);
+      setManualOrderData({ wallet_address: '', quantity: '' });
+      fetchOrders();
+      fetchStats();
+    } catch (error) {
+      console.error('Failed to create manual order:', error);
+      toast.error('Failed to create order');
     }
   };
 
@@ -91,7 +169,7 @@ export const AdminPanel = ({ onBack }) => {
             Back to Main
           </Button>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d4a853] to-[#c87840] flex items-center justify-center">
                 <Shield className="w-6 h-6 text-[#0d1117]" />
@@ -101,19 +179,101 @@ export const AdminPanel = ({ onBack }) => {
                 <p className="text-gray-400">Orders management and statistics</p>
               </div>
             </div>
-            <Button
-              onClick={() => { fetchOrders(); fetchStats(); }}
-              className="bg-gradient-to-r from-[#d4a853] to-[#c87840] hover:from-[#e5b964] hover:to-[#d98950] text-[#0d1117]"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                onClick={() => setShowSettings(!showSettings)}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+              <Button
+                onClick={() => setShowManualOrder(!showManualOrder)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Order
+              </Button>
+              <Button
+                onClick={() => { fetchOrders(); fetchStats(); }}
+                className="bg-gradient-to-r from-[#d4a853] to-[#c87840] hover:from-[#e5b964] hover:to-[#d98950] text-[#0d1117]"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
           </div>
         </div>
 
+        {/* Settings Panel */}
+        {showSettings && (
+          <Card className="glass-effect border border-purple-500/30 p-6 mb-6">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <Settings className="w-5 h-5 text-purple-400" />
+              Platform Settings
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Total Tokens For Sale</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    value={newTokensForSale}
+                    onChange={(e) => setNewTokensForSale(e.target.value)}
+                    className="bg-black/30 border-white/10 text-white"
+                    placeholder="400000000"
+                  />
+                  <Button onClick={updateTokensForSale} className="bg-purple-600 hover:bg-purple-700">
+                    <Save className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Current: {tokensForSale.toLocaleString()} ARA</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Manual Order Form */}
+        {showManualOrder && (
+          <Card className="glass-effect border border-blue-500/30 p-6 mb-6">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <Plus className="w-5 h-5 text-blue-400" />
+              Create Manual Order
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Wallet Address</label>
+                <Input
+                  type="text"
+                  value={manualOrderData.wallet_address}
+                  onChange={(e) => setManualOrderData({...manualOrderData, wallet_address: e.target.value})}
+                  className="bg-black/30 border-white/10 text-white"
+                  placeholder="0x..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Token Quantity (ARA)</label>
+                <Input
+                  type="number"
+                  value={manualOrderData.quantity}
+                  onChange={(e) => setManualOrderData({...manualOrderData, quantity: e.target.value})}
+                  className="bg-black/30 border-white/10 text-white"
+                  placeholder="10000"
+                />
+              </div>
+              <div className="flex items-end">
+                <Button onClick={createManualOrder} className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Order
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
             <Card className="bg-gradient-to-br from-[#d4a853]/10 to-[#c87840]/10 border-[#d4a853]/20 p-6">
               <div className="text-sm text-gray-400 mb-1">Total Orders</div>
               <div className="text-3xl font-bold text-white">{stats.total_orders}</div>
@@ -121,6 +281,10 @@ export const AdminPanel = ({ onBack }) => {
             <Card className="bg-gradient-to-br from-[#4dd4e8]/10 to-[#87e8f5]/10 border-[#4dd4e8]/20 p-6">
               <div className="text-sm text-gray-400 mb-1">ARA Sold</div>
               <div className="text-3xl font-bold text-white">{stats.total_ara_sold.toLocaleString()}</div>
+            </Card>
+            <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20 p-6">
+              <div className="text-sm text-gray-400 mb-1">Tokens For Sale</div>
+              <div className="text-3xl font-bold text-white">{(stats.tokens_for_sale || 400000000).toLocaleString()}</div>
             </Card>
             <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20 p-6">
               <div className="text-sm text-gray-400 mb-1">Wallets Connected</div>
@@ -198,14 +362,31 @@ export const AdminPanel = ({ onBack }) => {
                       </td>
                       <td className="py-4 px-4">
                         <span className="text-sm text-gray-300 capitalize flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#9945FF] to-[#14F195] flex items-center justify-center">
-                            <span className="text-white font-bold text-[8px]">SOL</span>
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${order.blockchain === 'ethereum' ? 'bg-gradient-to-br from-[#627EEA] to-[#3C3C3D]' : 'bg-gradient-to-br from-[#9945FF] to-[#14F195]'}`}>
+                            <span className="text-white font-bold text-[8px]">{order.blockchain === 'ethereum' ? 'ETH' : 'SOL'}</span>
                           </div>
                           {order.blockchain}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-right">
-                        <span className="text-sm font-semibold text-white">{order.quantity.toLocaleString()}</span>
+                        {editingOrder === order.id ? (
+                          <div className="flex gap-2 items-center justify-end">
+                            <Input
+                              type="number"
+                              value={newQuantity}
+                              onChange={(e) => setNewQuantity(e.target.value)}
+                              className="w-24 h-8 text-sm bg-black/30 border-white/10 text-white"
+                            />
+                            <Button size="sm" onClick={() => updateOrderQuantity(order.id)} className="bg-green-600 hover:bg-green-700 h-8">
+                              <Save className="w-3 h-3" />
+                            </Button>
+                            <Button size="sm" onClick={() => { setEditingOrder(null); setNewQuantity(''); }} variant="outline" className="h-8 border-white/10">
+                              ×
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-sm font-semibold text-white">{order.quantity.toLocaleString()}</span>
+                        )}
                       </td>
                       <td className="py-4 px-4 text-right">
                         <span className="text-sm font-semibold text-[#d4a853]">${order.total_amount}</span>
@@ -217,25 +398,43 @@ export const AdminPanel = ({ onBack }) => {
                         </span>
                       </td>
                       <td className="py-4 px-4">
-                        <div className="flex gap-2 justify-center">
+                        <div className="flex gap-1 justify-center">
                           {order.status === 'pending' && (
                             <>
                               <Button
                                 size="sm"
                                 onClick={() => updateOrderStatus(order.id, 'confirmed')}
-                                className="bg-green-600 hover:bg-green-700 text-white"
+                                className="bg-green-600 hover:bg-green-700 text-white h-8 w-8 p-0"
+                                title="Confirm"
                               >
                                 ✓
                               </Button>
                               <Button
                                 size="sm"
                                 onClick={() => updateOrderStatus(order.id, 'failed')}
-                                variant="destructive"
+                                className="bg-red-600 hover:bg-red-700 text-white h-8 w-8 p-0"
+                                title="Reject"
                               >
                                 ×
                               </Button>
                             </>
                           )}
+                          <Button
+                            size="sm"
+                            onClick={() => { setEditingOrder(order.id); setNewQuantity(order.quantity.toString()); }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white h-8 w-8 p-0"
+                            title="Edit Quantity"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => deleteOrder(order.id)}
+                            className="bg-red-800 hover:bg-red-900 text-white h-8 w-8 p-0"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
                         </div>
                       </td>
                     </motion.tr>
