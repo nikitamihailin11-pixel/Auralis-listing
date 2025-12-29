@@ -406,7 +406,8 @@ async def get_all_orders():
                 quantity=order["quantity"],
                 price_per_token=order["price_per_token"],
                 total_amount=order["total_amount"],
-                status=OrderStatus(order["status"]),
+                status=OrderStatus(order["status"]) if order["status"] in [s.value for s in OrderStatus] else OrderStatus.PENDING,
+                tx_hash=order.get("tx_hash"),
                 created_at=datetime.fromisoformat(order["created_at"]),
                 updated_at=datetime.fromisoformat(order["updated_at"])
             )
