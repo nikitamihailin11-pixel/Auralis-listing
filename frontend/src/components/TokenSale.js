@@ -187,9 +187,6 @@ export const TokenSale = () => {
       setTimeout(() => {
         setShowTxModal(false);
       }, 5000);
-      } else {
-        toast.error(error.message || 'Payment failed. Please try again.');
-      }
     } finally {
       setIsLoading(false);
     }
