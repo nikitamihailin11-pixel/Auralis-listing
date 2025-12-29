@@ -321,17 +321,23 @@ async def get_stats():
         total_orders = await orders_collection.count_documents({})
         total_wallets = await wallets_collection.count_documents({})
         
-        # Calculate total ARA sold
+        # Calculate total ARA sold (only confirmed orders)
         pipeline = [
+            {"$match": {"status": "confirmed"}},
             {"$group": {"_id": None, "total_ara": {"$sum": "$quantity"}}}
         ]
         result = await orders_collection.aggregate(pipeline).to_list(length=1)
         total_ara_sold = result[0]["total_ara"] if result else 0
         
+        # Get tokens for sale from settings
+        settings = await settings_collection.find_one({"key": "tokens_for_sale"})
+        tokens_for_sale = settings["value"] if settings else 400000000
+        
         return {
             "total_orders": total_orders,
             "total_wallets": total_wallets,
             "total_ara_sold": total_ara_sold,
+            "tokens_for_sale": tokens_for_sale,
             "ara_price": 0.01
         }
     except Exception as e:
@@ -340,8 +346,203 @@ async def get_stats():
             "total_orders": 0,
             "total_wallets": 0,
             "total_ara_sold": 0,
+            "tokens_for_sale": 400000000,
             "ara_price": 0.01
         }
+
+# ===================== ADMIN ENDPOINTS =====================
+
+@api_router.put("/admin/settings/tokens-for-sale")
+async def update_tokens_for_sale(request: dict):
+    """Update total tokens for sale"""
+    try:
+        new_value = request.get("tokens_for_sale")
+        if new_value is None or new_value < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid tokens_for_sale value"
+            )
+        
+        await settings_collection.update_one(
+            {"key": "tokens_for_sale"},
+            {"$set": {"value": new_value}},
+            upsert=True
+        )
+        
+        return {"message": "Tokens for sale updated", "tokens_for_sale": new_value}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Failed to update tokens for sale: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@api_router.get("/admin/settings/tokens-for-sale")
+async def get_tokens_for_sale():
+    """Get total tokens for sale"""
+    try:
+        settings = await settings_collection.find_one({"key": "tokens_for_sale"})
+        return {"tokens_for_sale": settings["value"] if settings else 400000000}
+    except Exception as e:
+        return {"tokens_for_sale": 400000000}
+
+@api_router.put("/admin/orders/{order_id}/quantity")
+async def update_order_quantity(order_id: str, request: dict):
+    """Update order quantity (admin)"""
+    try:
+        from bson import ObjectId
+        
+        new_quantity = request.get("quantity")
+        if new_quantity is None or new_quantity < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid quantity"
+            )
+        
+        # Get current order to get price_per_token
+        order = await orders_collection.find_one({"_id": ObjectId(order_id)})
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        price_per_token = order.get("price_per_token", 0.01)
+        new_total = new_quantity * price_per_token
+        now = datetime.now(timezone.utc)
+        
+        await orders_collection.update_one(
+            {"_id": ObjectId(order_id)},
+            {
+                "$set": {
+                    "quantity": new_quantity,
+                    "total_amount": new_total,
+                    "updated_at": now.isoformat()
+                }
+            }
+        )
+        
+        return {
+            "message": "Order quantity updated",
+            "order_id": order_id,
+            "quantity": new_quantity,
+            "total_amount": new_total
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Failed to update order quantity: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@api_router.delete("/admin/orders/{order_id}")
+async def delete_order(order_id: str):
+    """Delete an order (admin)"""
+    try:
+        from bson import ObjectId
+        
+        result = await orders_collection.delete_one({"_id": ObjectId(order_id)})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        return {"message": "Order deleted", "order_id": order_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Failed to delete order: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@api_router.post("/admin/orders/create-manual")
+async def create_manual_order(request: dict):
+    """Create order manually for a wallet (admin)"""
+    try:
+        wallet_address = request.get("wallet_address")
+        quantity = request.get("quantity", 0)
+        status_val = request.get("status", "confirmed")
+        
+        if not wallet_address or quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid wallet_address or quantity"
+            )
+        
+        price_per_token = 0.01
+        total_amount = quantity * price_per_token
+        now = datetime.now(timezone.utc)
+        
+        order_data = {
+            "wallet_address": wallet_address,
+            "blockchain": "ethereum",
+            "quantity": quantity,
+            "price_per_token": price_per_token,
+            "total_amount": total_amount,
+            "status": status_val,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+            "manual": True
+        }
+        
+        result = await orders_collection.insert_one(order_data)
+        
+        return {
+            "message": "Manual order created",
+            "order_id": str(result.inserted_id),
+            "wallet_address": wallet_address,
+            "quantity": quantity,
+            "total_amount": total_amount,
+            "status": status_val
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Failed to create manual order: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@api_router.get("/admin/orders/by-wallet/{wallet_address}")
+async def get_orders_by_wallet_admin(wallet_address: str):
+    """Get all orders for a wallet with full details (admin)"""
+    try:
+        orders = await orders_collection.find(
+            {"wallet_address": wallet_address}
+        ).sort("created_at", -1).to_list(length=1000)
+        
+        total_tokens = sum(o.get("quantity", 0) for o in orders if o.get("status") == "confirmed")
+        
+        return {
+            "wallet_address": wallet_address,
+            "total_tokens": total_tokens,
+            "orders": [
+                {
+                    "id": str(o["_id"]),
+                    "quantity": o.get("quantity", 0),
+                    "total_amount": o.get("total_amount", 0),
+                    "status": o.get("status"),
+                    "created_at": o.get("created_at"),
+                    "manual": o.get("manual", False)
+                }
+                for o in orders
+            ]
+        }
+    except Exception as e:
+        logging.error(f"Failed to get orders by wallet: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 # Include the router in the main app
 app.include_router(api_router)
