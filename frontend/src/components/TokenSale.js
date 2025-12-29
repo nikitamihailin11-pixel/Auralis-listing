@@ -17,19 +17,18 @@ const ARA_PRICE = 0.01;
 const PRESALE_END_DATE = new Date();
 PRESALE_END_DATE.setDate(PRESALE_END_DATE.getDate() + 127);
 
-const TOKENS_FOR_SALE = 400000000;
-
 export const TokenSale = () => {
   const { isConnected, walletAddress, walletType, userStats, connectMetaMask, sendPayment, fetchUserOrders } = useWallet();
   const [quantity, setQuantity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [completedOrder, setCompletedOrder] = useState(null);
-  const [stats, setStats] = useState({ total_ara_sold: 0 });
+  const [stats, setStats] = useState({ total_ara_sold: 0, tokens_for_sale: 400000000 });
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   const totalCost = quantity ? (parseFloat(quantity) * ARA_PRICE).toFixed(2) : '0.00';
-  const soldPercentage = Math.min((stats.total_ara_sold / TOKENS_FOR_SALE) * 100, 100);
+  const tokensForSale = stats.tokens_for_sale || 400000000;
+  const soldPercentage = Math.min((stats.total_ara_sold / tokensForSale) * 100, 100);
 
   // Countdown timer
   useEffect(() => {
