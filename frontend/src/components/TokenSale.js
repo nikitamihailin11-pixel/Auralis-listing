@@ -354,11 +354,11 @@ export const TokenSale = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-3">ARA Token Quantity</label>
                 <Input 
                   type="number" 
-                  min="0" 
+                  min="1000" 
                   step="100" 
                   value={quantity} 
                   onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="Enter quantity" 
+                  placeholder="Min 1,000 ARA ($10 USDT)" 
                   data-testid="token-quantity-input"
                   className="h-16 text-lg bg-black/20 border border-white/10 rounded-xl px-4 text-white placeholder:text-gray-500" 
                 />
@@ -375,6 +375,7 @@ export const TokenSale = () => {
                     </Button>
                   ))}
                 </div>
+                <p className="text-xs text-yellow-500 mt-2">Minimum purchase: $10 USDT (1,000 ARA)</p>
               </div>
 
               {/* Order summary */}
