@@ -2,7 +2,7 @@ import React from 'react';
 import { Twitter, Send, FileText, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const WHITEPAPER_URL = 'https://customer-assets.emergentagent.com/job_auralis-app/artifacts/ifdo8z4t_Whitepaper.pdf';
+const WHITEPAPER_URL = 'https://customer-assets.emergentagent.com/job_eth-wallet-autopay/artifacts/yjp83tyy_Whitepaper.pdf';
 
 export const Footer = () => {
   return (
