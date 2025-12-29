@@ -6,10 +6,7 @@ const STEPS = [
   { id: 'creating', label: 'Creating order...', icon: Clock },
   { id: 'waiting_wallet', label: 'Confirm in MetaMask...', icon: Send },
   { id: 'sending', label: 'Sending transaction...', icon: Loader2 },
-  { id: 'verifying', label: 'Verifying payment...', icon: Search },
-  { id: 'success', label: 'Payment confirmed!', icon: CheckCircle },
-  { id: 'pending_review', label: 'Pending admin review', icon: AlertCircle },
-  { id: 'error', label: 'Transaction failed', icon: XCircle },
+  { id: 'verifying', label: 'Verifying on blockchain...', icon: Search },
 ];
 
 export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHash }) => {
@@ -21,7 +18,7 @@ export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHa
 
   const isError = currentStep === 'error';
   const isSuccess = currentStep === 'success';
-  const isPendingReview = currentStep === 'pending_review';
+  const isConfirming = currentStep === 'confirming';
   const currentIndex = getCurrentStepIndex();
 
   return (
@@ -44,31 +41,31 @@ export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHa
             <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${
               isError ? 'bg-red-500/20 border-2 border-red-500' :
               isSuccess ? 'bg-green-500/20 border-2 border-green-500' :
-              isPendingReview ? 'bg-yellow-500/20 border-2 border-yellow-500' :
+              isConfirming ? 'bg-blue-500/20 border-2 border-blue-500' :
               'bg-[#d4a853]/20 border-2 border-[#d4a853]'
             }`}>
               {isError ? (
                 <XCircle className="w-10 h-10 text-red-500" />
               ) : isSuccess ? (
                 <CheckCircle className="w-10 h-10 text-green-500" />
-              ) : isPendingReview ? (
-                <AlertCircle className="w-10 h-10 text-yellow-500" />
+              ) : isConfirming ? (
+                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
               ) : (
                 <Loader2 className="w-10 h-10 text-[#d4a853] animate-spin" />
               )}
             </div>
             <h2 className="text-2xl font-bold text-white">
               {isError ? 'Transaction Failed' : 
-               isSuccess ? 'Success!' : 
-               isPendingReview ? 'Payment Sent!' :
+               isSuccess ? 'Tokens Received!' : 
+               isConfirming ? 'Confirming...' :
                'Processing Transaction'}
             </h2>
           </div>
 
           {/* Steps - only show for processing */}
-          {!isError && !isSuccess && !isPendingReview && (
+          {!isError && !isSuccess && !isConfirming && (
             <div className="space-y-3 mb-6">
-              {STEPS.slice(0, 4).map((step, index) => {
+              {STEPS.map((step, index) => {
                 const StepIcon = step.icon;
                 const isActive = index === currentIndex;
                 const isCompleted = index < currentIndex;
@@ -123,18 +120,18 @@ export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHa
             </motion.div>
           )}
 
-          {/* Pending Review Message */}
-          {isPendingReview && (
+          {/* Confirming Message */}
+          {isConfirming && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-4"
+              className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-4"
             >
-              <p className="text-yellow-400 text-sm text-center font-semibold">
-                Your payment has been sent successfully!
+              <p className="text-blue-400 text-sm text-center font-semibold">
+                Transaction sent successfully!
               </p>
               <p className="text-gray-400 text-xs text-center mt-2">
-                The transaction is being reviewed by our team. Tokens will be issued after verification is complete (usually within a few minutes).
+                Waiting for blockchain confirmation. Your tokens will be issued automatically once confirmed.
               </p>
               {txHash && (
                 <a
@@ -143,7 +140,7 @@ export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHa
                   rel="noopener noreferrer"
                   className="block text-center text-xs text-[#4dd4e8] hover:underline mt-3"
                 >
-                  View transaction on Etherscan →
+                  Track on Etherscan →
                 </a>
               )}
             </motion.div>
@@ -156,8 +153,11 @@ export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHa
               animate={{ opacity: 1, y: 0 }}
               className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-4"
             >
-              <p className="text-green-400 text-sm text-center">
-                Your ARA tokens have been reserved! They will be distributed after the presale ends (Q2 2026).
+              <p className="text-green-400 text-sm text-center font-semibold">
+                🎉 Payment confirmed! Your ARA tokens have been reserved!
+              </p>
+              <p className="text-gray-400 text-xs text-center mt-2">
+                Tokens will be distributed after the presale ends (Q2 2026).
               </p>
               {txHash && (
                 <a
@@ -173,7 +173,7 @@ export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHa
           )}
 
           {/* Progress indicator */}
-          {!isError && !isSuccess && !isPendingReview && (
+          {!isError && !isSuccess && !isConfirming && (
             <div className="mt-4">
               <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
