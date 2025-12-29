@@ -130,8 +130,12 @@ export const TokenSale = () => {
       
       console.log('Verify response:', verifyResponse.data);
       
-      // Check the actual result from blockchain verification
-      if (verifyResponse.data.verified && verifyResponse.data.status === 'confirmed') {
+      // Check the result from blockchain verification
+      const isConfirmed = verifyResponse.data.verified === true || verifyResponse.data.status === 'confirmed';
+      const isFailed = verifyResponse.data.tx_failed === true || verifyResponse.data.status === 'failed';
+      const isPending = verifyResponse.data.pending === true;
+      
+      if (isConfirmed) {
         // SUCCESS - Transaction confirmed on blockchain
         setTxStep('success');
         
@@ -155,10 +159,10 @@ export const TokenSale = () => {
           setShowSuccessModal(true);
         }, 3000);
         
-      } else if (verifyResponse.data.tx_failed || verifyResponse.data.status === 'failed') {
+      } else if (isFailed) {
         // FAILED - Transaction failed on blockchain
         setTxStep('error');
-        setTxError('Transaction failed on blockchain. No tokens issued.');
+        setTxError(verifyResponse.data.error || 'Transaction failed on blockchain. No tokens issued.');
         
         await fetchUserOrders(walletAddress);
         setQuantity('');
@@ -167,7 +171,7 @@ export const TokenSale = () => {
           setShowTxModal(false);
         }, 5000);
         
-      } else if (verifyResponse.data.pending) {
+      } else if (isPending) {
         // PENDING - Still waiting for blockchain confirmation
         setTxStep('confirming');
         
@@ -179,10 +183,12 @@ export const TokenSale = () => {
         }, 5000);
         
       } else {
-        // Unknown state - show as pending
-        setTxStep('confirming');
+        // Unknown state - check order status directly
+        console.log('Unknown verify state, checking order...');
         
+        // Refresh orders and show confirming
         await fetchUserOrders(walletAddress);
+        setTxStep('confirming');
         setQuantity('');
         
         setTimeout(() => {
