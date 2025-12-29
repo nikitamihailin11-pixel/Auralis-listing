@@ -109,14 +109,26 @@ export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHa
           )}
 
           {/* Error Message */}
-          {isError && errorMessage && (
+          {isError && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4"
             >
-              <p className="text-red-400 text-sm text-center">{errorMessage}</p>
+              <p className="text-red-400 text-sm text-center font-semibold">
+                {errorMessage || 'Transaction failed'}
+              </p>
               <p className="text-gray-500 text-xs text-center mt-2">No tokens will be issued.</p>
+              {txHash && (
+                <a
+                  href={`https://etherscan.io/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-center text-xs text-[#4dd4e8] hover:underline mt-3"
+                >
+                  View failed transaction →
+                </a>
+              )}
             </motion.div>
           )}
 
@@ -128,10 +140,10 @@ export const TransactionStatusModal = ({ isOpen, currentStep, errorMessage, txHa
               className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-4"
             >
               <p className="text-blue-400 text-sm text-center font-semibold">
-                Transaction sent successfully!
+                Transaction sent!
               </p>
               <p className="text-gray-400 text-xs text-center mt-2">
-                Waiting for blockchain confirmation. Your tokens will be issued automatically once confirmed.
+                Waiting for blockchain confirmation. Check your orders for status updates.
               </p>
               {txHash && (
                 <a
