@@ -1,6 +1,6 @@
 # Testing Protocol - DO NOT EDIT THIS SECTION
 
-user_problem_statement: Auralis token presale website with Phantom and Solflare wallet integration on Solana network for USDT payments
+user_problem_statement: Auralis token presale website with MetaMask wallet integration on Ethereum network for USDT payments
 
 backend:
   - task: "API health check and stats endpoint"
