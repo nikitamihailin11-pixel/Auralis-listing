@@ -7,7 +7,7 @@ import json
 
 def test_review_requirements():
     """Test the exact flow requested in the review"""
-    base_url = "https://defi-presale-2.preview.emergentagent.com"
+    base_url = "https://eth-wallet-autopay.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🔍 Testing Review Request Requirements...")
