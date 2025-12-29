@@ -375,6 +375,13 @@ export const TokenSale = () => {
           )}
         </Card>
 
+        <TransactionStatusModal
+          isOpen={showTxModal}
+          currentStep={txStep}
+          errorMessage={txError}
+          txHash={currentTxHash}
+        />
+
         <SuccessModal 
           isOpen={showSuccessModal} 
           onClose={handleCloseSuccess} 
