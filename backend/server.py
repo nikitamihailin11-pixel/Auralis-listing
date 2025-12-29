@@ -187,14 +187,15 @@ async def create_order(request: OrderCreationRequest):
         
         now = datetime.now(timezone.utc)
         
-        # Create order
+        # Create order with awaiting_payment status
         order_data = {
             "wallet_address": request.wallet_address,
             "blockchain": request.blockchain.value,
             "quantity": request.quantity,
             "price_per_token": request.price_per_token,
             "total_amount": total_amount,
-            "status": OrderStatus.PENDING.value,
+            "status": OrderStatus.AWAITING_PAYMENT.value,
+            "tx_hash": None,
             "created_at": now.isoformat(),
             "updated_at": now.isoformat()
         }
@@ -208,7 +209,8 @@ async def create_order(request: OrderCreationRequest):
             quantity=request.quantity,
             price_per_token=request.price_per_token,
             total_amount=total_amount,
-            status=OrderStatus.PENDING,
+            status=OrderStatus.AWAITING_PAYMENT,
+            tx_hash=None,
             created_at=now,
             updated_at=now
         )
@@ -220,6 +222,143 @@ async def create_order(request: OrderCreationRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create order: {str(e)}"
+        )
+
+@api_router.put("/orders/{order_id}/submit-payment")
+async def submit_payment(order_id: str, request: dict):
+    """Submit transaction hash for payment verification"""
+    try:
+        from bson import ObjectId
+        
+        tx_hash = request.get("tx_hash")
+        if not tx_hash:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Transaction hash required"
+            )
+        
+        now = datetime.now(timezone.utc)
+        
+        result = await orders_collection.update_one(
+            {"_id": ObjectId(order_id)},
+            {
+                "$set": {
+                    "tx_hash": tx_hash,
+                    "status": OrderStatus.PAYMENT_SENT.value,
+                    "updated_at": now.isoformat()
+                }
+            }
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        return {"message": "Payment submitted for verification", "tx_hash": tx_hash, "status": "payment_sent"}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Failed to submit payment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@api_router.post("/orders/{order_id}/verify-payment")
+async def verify_payment(order_id: str):
+    """Verify payment transaction on blockchain"""
+    try:
+        from bson import ObjectId
+        
+        order = await orders_collection.find_one({"_id": ObjectId(order_id)})
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        tx_hash = order.get("tx_hash")
+        if not tx_hash:
+            return {"verified": False, "error": "No transaction hash", "status": order.get("status")}
+        
+        # Verify transaction using public Ethereum RPC
+        try:
+            async with httpx.AsyncClient() as client:
+                # Get transaction receipt
+                response = await client.post(
+                    "https://eth.llamarpc.com",
+                    json={
+                        "jsonrpc": "2.0",
+                        "method": "eth_getTransactionReceipt",
+                        "params": [tx_hash],
+                        "id": 1
+                    },
+                    timeout=30.0
+                )
+                
+                data = response.json()
+                receipt = data.get("result")
+                
+                if not receipt:
+                    return {"verified": False, "error": "Transaction not found or pending", "status": order.get("status")}
+                
+                # Check if transaction was successful
+                tx_status = int(receipt.get("status", "0x0"), 16)
+                if tx_status != 1:
+                    # Transaction failed
+                    now = datetime.now(timezone.utc)
+                    await orders_collection.update_one(
+                        {"_id": ObjectId(order_id)},
+                        {"$set": {"status": OrderStatus.FAILED.value, "updated_at": now.isoformat()}}
+                    )
+                    return {"verified": False, "error": "Transaction failed on blockchain", "status": "failed"}
+                
+                # Check if it's a USDT transfer to our address
+                to_address = receipt.get("to", "").lower()
+                
+                # For USDT transfers, 'to' should be the USDT contract
+                if to_address == ETH_USDT_CONTRACT:
+                    # Parse logs to verify the transfer
+                    logs = receipt.get("logs", [])
+                    transfer_verified = False
+                    
+                    for log in logs:
+                        # Transfer event topic
+                        if len(log.get("topics", [])) >= 3:
+                            # Check if recipient matches our payment address
+                            recipient = "0x" + log["topics"][2][-40:].lower()
+                            if recipient == ETH_PAYMENT_ADDRESS:
+                                transfer_verified = True
+                                break
+                    
+                    if transfer_verified:
+                        now = datetime.now(timezone.utc)
+                        await orders_collection.update_one(
+                            {"_id": ObjectId(order_id)},
+                            {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
+                        )
+                        return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
+                    else:
+                        return {"verified": False, "error": "Transfer not to correct address", "status": order.get("status")}
+                else:
+                    return {"verified": False, "error": "Not a USDT contract transaction", "status": order.get("status")}
+                    
+        except httpx.TimeoutException:
+            return {"verified": False, "error": "Blockchain request timeout", "status": order.get("status")}
+        except Exception as e:
+            logging.error(f"Blockchain verification error: {str(e)}")
+            return {"verified": False, "error": f"Verification error: {str(e)}", "status": order.get("status")}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Failed to verify payment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
         )
 
 @api_router.get("/orders/wallet/{wallet_address}", response_model=List[OrderResponse])
