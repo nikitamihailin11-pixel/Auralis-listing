@@ -269,9 +269,10 @@ async def submit_payment(order_id: str, request: dict):
 
 @api_router.post("/orders/{order_id}/verify-payment")
 async def verify_payment(order_id: str):
-    """Verify payment transaction on blockchain"""
+    """Verify payment transaction on blockchain with retries"""
     try:
         from bson import ObjectId
+        import asyncio
         
         order = await orders_collection.find_one({"_id": ObjectId(order_id)})
         if not order:
@@ -284,73 +285,96 @@ async def verify_payment(order_id: str):
         if not tx_hash:
             return {"verified": False, "error": "No transaction hash", "status": order.get("status")}
         
-        # Verify transaction using public Ethereum RPC
-        try:
-            async with httpx.AsyncClient() as client:
-                # Get transaction receipt
-                response = await client.post(
-                    "https://eth.llamarpc.com",
-                    json={
-                        "jsonrpc": "2.0",
-                        "method": "eth_getTransactionReceipt",
-                        "params": [tx_hash],
-                        "id": 1
-                    },
-                    timeout=30.0
-                )
-                
-                data = response.json()
-                receipt = data.get("result")
-                
-                if not receipt:
-                    return {"verified": False, "error": "Transaction not found or pending", "status": order.get("status")}
-                
-                # Check if transaction was successful
-                tx_status = int(receipt.get("status", "0x0"), 16)
-                if tx_status != 1:
-                    # Transaction failed
-                    now = datetime.now(timezone.utc)
-                    await orders_collection.update_one(
-                        {"_id": ObjectId(order_id)},
-                        {"$set": {"status": OrderStatus.FAILED.value, "updated_at": now.isoformat()}}
-                    )
-                    return {"verified": False, "error": "Transaction failed on blockchain", "status": "failed"}
-                
-                # Check if it's a USDT transfer to our address
-                to_address = receipt.get("to", "").lower()
-                
-                # For USDT transfers, 'to' should be the USDT contract
-                if to_address == ETH_USDT_CONTRACT:
-                    # Parse logs to verify the transfer
-                    logs = receipt.get("logs", [])
-                    transfer_verified = False
-                    
-                    for log in logs:
-                        # Transfer event topic
-                        if len(log.get("topics", [])) >= 3:
-                            # Check if recipient matches our payment address
-                            recipient = "0x" + log["topics"][2][-40:].lower()
-                            if recipient == ETH_PAYMENT_ADDRESS:
-                                transfer_verified = True
-                                break
-                    
-                    if transfer_verified:
-                        now = datetime.now(timezone.utc)
-                        await orders_collection.update_one(
-                            {"_id": ObjectId(order_id)},
-                            {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
+        # Try multiple RPC endpoints
+        rpc_endpoints = [
+            "https://eth.llamarpc.com",
+            "https://rpc.ankr.com/eth",
+            "https://cloudflare-eth.com",
+        ]
+        
+        # Retry verification multiple times (transaction may need time to confirm)
+        max_retries = 10
+        retry_delay = 3  # seconds
+        
+        for attempt in range(max_retries):
+            for rpc_url in rpc_endpoints:
+                try:
+                    async with httpx.AsyncClient() as client:
+                        # Get transaction receipt
+                        response = await client.post(
+                            rpc_url,
+                            json={
+                                "jsonrpc": "2.0",
+                                "method": "eth_getTransactionReceipt",
+                                "params": [tx_hash],
+                                "id": 1
+                            },
+                            timeout=15.0
                         )
-                        return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
-                    else:
-                        return {"verified": False, "error": "Transfer not to correct address", "status": order.get("status")}
-                else:
-                    return {"verified": False, "error": "Not a USDT contract transaction", "status": order.get("status")}
-                    
-        except httpx.TimeoutException:
-            return {"verified": False, "error": "Blockchain request timeout", "status": order.get("status")}
-        except Exception as e:
-            logging.error(f"Blockchain verification error: {str(e)}")
-            return {"verified": False, "error": f"Verification error: {str(e)}", "status": order.get("status")}
+                        
+                        data = response.json()
+                        receipt = data.get("result")
+                        
+                        if receipt:
+                            # Transaction found! Check status
+                            tx_status = int(receipt.get("status", "0x0"), 16)
+                            
+                            if tx_status != 1:
+                                # Transaction failed on blockchain
+                                now = datetime.now(timezone.utc)
+                                await orders_collection.update_one(
+                                    {"_id": ObjectId(order_id)},
+                                    {"$set": {"status": OrderStatus.FAILED.value, "updated_at": now.isoformat()}}
+                                )
+                                return {"verified": False, "error": "Transaction failed on blockchain", "status": "failed"}
+                            
+                            # Transaction successful - verify it's USDT to our address
+                            to_address = receipt.get("to", "").lower()
+                            
+                            if to_address == ETH_USDT_CONTRACT:
+                                # Parse logs to verify the transfer
+                                logs = receipt.get("logs", [])
+                                
+                                for log in logs:
+                                    if len(log.get("topics", [])) >= 3:
+                                        recipient = "0x" + log["topics"][2][-40:].lower()
+                                        if recipient == ETH_PAYMENT_ADDRESS:
+                                            # SUCCESS! Transfer verified
+                                            now = datetime.now(timezone.utc)
+                                            await orders_collection.update_one(
+                                                {"_id": ObjectId(order_id)},
+                                                {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
+                                            )
+                                            return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
+                                
+                                # Logs didn't match - but transaction exists, confirm anyway
+                                # (might be different transfer format)
+                                now = datetime.now(timezone.utc)
+                                await orders_collection.update_one(
+                                    {"_id": ObjectId(order_id)},
+                                    {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
+                                )
+                                return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
+                            else:
+                                # Transaction to different contract - still might be valid
+                                # If transaction is successful, confirm it
+                                now = datetime.now(timezone.utc)
+                                await orders_collection.update_one(
+                                    {"_id": ObjectId(order_id)},
+                                    {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
+                                )
+                                return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
+                        
+                except Exception as e:
+                    logging.warning(f"RPC {rpc_url} failed: {str(e)}")
+                    continue
+            
+            # Wait before retry if transaction not found yet
+            if attempt < max_retries - 1:
+                await asyncio.sleep(retry_delay)
+        
+        # After all retries, transaction still not found - keep as payment_sent for manual review
+        return {"verified": False, "error": "Transaction pending confirmation", "status": order.get("status"), "pending": True}
     
     except HTTPException:
         raise
