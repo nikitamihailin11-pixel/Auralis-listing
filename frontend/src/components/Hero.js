@@ -7,7 +7,7 @@ import { useWallet } from '../context/WalletContext';
 const AVATAR_URL = 'https://customer-assets.emergentagent.com/job_auralis-app/artifacts/54orsfy0_7a153b1b-b478-48c5-a9e3-246632224b62.jpg';
 
 export const Hero = ({ onBuyClick }) => {
-  const { isConnected, walletAddress, walletType, connectPhantom, disconnect } = useWallet();
+  const { isConnected, walletAddress, walletType, connectMetaMask, disconnect } = useWallet();
 
   return (
     <div className="relative min-h-screen flex items-center overflow-hidden aurora-bg globe-pattern">
@@ -58,11 +58,11 @@ export const Hero = ({ onBuyClick }) => {
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
               {!isConnected ? (
                 <Button 
-                  onClick={connectPhantom}
-                  className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[#AB9FF2] to-[#9945FF] hover:from-[#BDB4F5] hover:to-[#AB56FF] text-white rounded-2xl transition-all hover:scale-105"
+                  onClick={connectMetaMask}
+                  className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[#F6851B] to-[#E2761B] hover:from-[#FFa03d] hover:to-[#F6851B] text-white rounded-2xl transition-all hover:scale-105"
                 >
                   <Wallet className="w-6 h-6 mr-2" />
-                  Connect Phantom
+                  Connect MetaMask
                 </Button>
               ) : (
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">

@@ -20,7 +20,7 @@ PRESALE_END_DATE.setDate(PRESALE_END_DATE.getDate() + 127);
 const TOKENS_FOR_SALE = 400000000;
 
 export const TokenSale = () => {
-  const { isConnected, walletAddress, walletType, userStats, connectPhantom, sendPayment, fetchUserOrders } = useWallet();
+  const { isConnected, walletAddress, walletType, userStats, connectMetaMask, sendPayment, fetchUserOrders } = useWallet();
   const [quantity, setQuantity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -82,14 +82,14 @@ export const TokenSale = () => {
       // Step 1: Create order in pending status
       const orderResponse = await axios.post(`${API}/orders/create`, {
         wallet_address: walletAddress,
-        blockchain: 'solana',
+        blockchain: 'ethereum',
         quantity: parseFloat(quantity),
         price_per_token: ARA_PRICE,
       });
       const orderId = orderResponse.data.id;
 
-      // Step 2: Send payment via Phantom
-      toast.info('Confirm transaction in Phantom...');
+      // Step 2: Send USDT payment via MetaMask
+      toast.info('Confirm transaction in MetaMask...');
       
       const paymentResult = await sendPayment(usdtAmount);
       
@@ -215,13 +215,13 @@ export const TokenSale = () => {
                 <Wallet className="w-10 h-10 text-[#d4a853]" />
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h3>
-              <p className="text-gray-400 mb-6">Connect Phantom wallet to purchase ARA tokens on Solana</p>
+              <p className="text-gray-400 mb-6">Connect MetaMask wallet to purchase ARA tokens with USDT on Ethereum</p>
               <Button 
-                onClick={connectPhantom}
-                className="h-14 px-8 font-bold bg-gradient-to-r from-[#AB9FF2] to-[#9945FF] hover:from-[#BDB4F5] hover:to-[#AB56FF] text-white rounded-xl transition-all hover:scale-105"
+                onClick={connectMetaMask}
+                className="h-14 px-8 font-bold bg-gradient-to-r from-[#F6851B] to-[#E2761B] hover:from-[#FFa03d] hover:to-[#F6851B] text-white rounded-xl transition-all hover:scale-105"
               >
                 <Wallet className="w-5 h-5 mr-2" />
-                Connect Phantom
+                Connect MetaMask
               </Button>
             </div>
           ) : (
@@ -314,7 +314,7 @@ export const TokenSale = () => {
                   <><ArrowRight className="w-6 h-6 mr-2" />Buy {quantity || 0} ARA for ${totalCost}</>
                 )}
               </Button>
-              <p className="text-xs text-center text-gray-500 mt-4">Payment via Solana • Tokens distributed Q2 2026</p>
+              <p className="text-xs text-center text-gray-500 mt-4">Payment via Ethereum (USDT) • Tokens distributed Q2 2026</p>
             </div>
           )}
         </Card>
