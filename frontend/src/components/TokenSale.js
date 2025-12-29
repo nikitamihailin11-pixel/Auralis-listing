@@ -78,7 +78,7 @@ export const TokenSale = () => {
     
     setIsLoading(true);
     try {
-      // Step 1: Create order in pending status
+      // Step 1: Create order (awaiting_payment status)
       const orderResponse = await axios.post(`${API}/orders/create`, {
         wallet_address: walletAddress,
         blockchain: 'ethereum',
@@ -93,32 +93,41 @@ export const TokenSale = () => {
       const paymentResult = await sendPayment(usdtAmount);
       
       if (paymentResult && paymentResult.hash) {
-        // Step 3: Update order status to confirmed
-        await axios.put(`${API}/orders/${orderId}/status`, {
-          status: 'confirmed',
+        // Step 3: Submit transaction hash for verification
+        await axios.put(`${API}/orders/${orderId}/submit-payment`, {
           tx_hash: paymentResult.hash
         });
-
-        // Step 4: Refresh user stats
-        await fetchUserOrders(walletAddress);
         
-        // Refresh global stats
-        const statsResponse = await axios.get(`${API}/stats`);
-        setStats(statsResponse.data);
+        toast.info('Payment sent! Verifying transaction...');
 
-        // Show success modal
-        setCompletedOrder({
-          id: orderId,
-          quantity: parseFloat(quantity),
-          pricePerToken: ARA_PRICE,
-          totalAmount: totalCost,
-          walletAddress: walletAddress,
-          txHash: paymentResult.hash,
-        });
+        // Step 4: Verify payment on blockchain
+        const verifyResponse = await axios.post(`${API}/orders/${orderId}/verify-payment`);
         
-        setShowSuccessModal(true);
-        setQuantity('');
-        toast.success('Purchase successful!');
+        if (verifyResponse.data.verified) {
+          // Payment verified successfully
+          await fetchUserOrders(walletAddress);
+          
+          const statsResponse = await axios.get(`${API}/stats`);
+          setStats(statsResponse.data);
+
+          setCompletedOrder({
+            id: orderId,
+            quantity: parseFloat(quantity),
+            pricePerToken: ARA_PRICE,
+            totalAmount: totalCost,
+            walletAddress: walletAddress,
+            txHash: paymentResult.hash,
+          });
+          
+          setShowSuccessModal(true);
+          setQuantity('');
+          toast.success('Payment verified! Tokens will be distributed after presale.');
+        } else {
+          // Payment not yet verified - might need time
+          toast.warning(`Payment sent but pending verification: ${verifyResponse.data.error || 'Transaction is being processed'}. Check your orders for status.`);
+          await fetchUserOrders(walletAddress);
+          setQuantity('');
+        }
       }
     } catch (error) {
       console.error('Purchase error:', error);
@@ -126,7 +135,7 @@ export const TokenSale = () => {
       if (error.message?.includes('User rejected') || error.code === 4001) {
         toast.error('Transaction cancelled');
       } else if (error.message?.includes('insufficient')) {
-        toast.error('Insufficient SOL balance');
+        toast.error('Insufficient USDT balance');
       } else {
         toast.error(error.message || 'Payment failed. Please try again.');
       }
