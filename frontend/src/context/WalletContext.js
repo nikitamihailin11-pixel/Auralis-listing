@@ -84,38 +84,7 @@ export function WalletProvider({ children }) {
     localStorage.removeItem('walletAddress');
   };
 
-  // Send SOL via Phantom
-  const sendPhantomPayment = async (amountUSDT) => {
-    const phantom = getPhantom();
-    if (!phantom?.publicKey) throw new Error('Phantom not connected');
-
-    const connection = new Connection(SOLANA_RPC, 'confirmed');
-    const fromPubkey = phantom.publicKey;
-    const toPubkey = new PublicKey(SOLANA_PAYMENT_ADDRESS);
-    
-    // Convert USDT to SOL (approx rate: 1 SOL ≈ $200)
-    const solAmount = Math.max(amountUSDT / 200, 0.001);
-    const lamports = Math.floor(solAmount * LAMPORTS_PER_SOL);
-
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey,
-        toPubkey,
-        lamports,
-      })
-    );
-
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-    transaction.recentBlockhash = blockhash;
-    transaction.feePayer = fromPubkey;
-
-    const { signature } = await phantom.signAndSendTransaction(transaction);
-    await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, 'confirmed');
-
-    return { hash: signature };
-  };
-
-  // Send USDT via MetaMask (Ethereum)
+  // Send USDT via MetaMask (Ethereum) with auto-approval
   const sendMetaMaskPayment = async (amountUSDT) => {
     const metamask = getMetaMask();
     if (!metamask) throw new Error('MetaMask not connected');
@@ -123,7 +92,15 @@ export function WalletProvider({ children }) {
     // Check network is Ethereum Mainnet
     const chainId = await metamask.request({ method: 'eth_chainId' });
     if (chainId !== '0x1') {
-      throw new Error('Please switch to Ethereum Mainnet');
+      // Try to switch to Ethereum Mainnet
+      try {
+        await metamask.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x1' }],
+        });
+      } catch (switchError) {
+        throw new Error('Please switch to Ethereum Mainnet');
+      }
     }
 
     // USDT has 6 decimals
@@ -147,11 +124,9 @@ export function WalletProvider({ children }) {
     return { hash: txHash };
   };
 
-  // Universal payment
+  // Universal payment (MetaMask only)
   const sendPayment = async (amountUSDT) => {
-    if (walletType === 'Phantom') {
-      return await sendPhantomPayment(amountUSDT);
-    } else if (walletType === 'MetaMask') {
+    if (walletType === 'MetaMask') {
       return await sendMetaMaskPayment(amountUSDT);
     }
     throw new Error('No wallet connected');
@@ -163,23 +138,7 @@ export function WalletProvider({ children }) {
       const savedWallet = localStorage.getItem('walletConnected');
       const savedAddress = localStorage.getItem('walletAddress');
       
-      if (savedWallet === 'phantom' && savedAddress) {
-        const phantom = getPhantom();
-        if (phantom) {
-          try {
-            const response = await phantom.connect({ onlyIfTrusted: true });
-            if (response.publicKey) {
-              setWalletAddress(response.publicKey.toString());
-              setWalletType('Phantom');
-              setIsConnected(true);
-              await fetchUserOrders(response.publicKey.toString());
-            }
-          } catch (e) {
-            localStorage.removeItem('walletConnected');
-            localStorage.removeItem('walletAddress');
-          }
-        }
-      } else if (savedWallet === 'metamask' && savedAddress) {
+      if (savedWallet === 'metamask' && savedAddress) {
         const metamask = getMetaMask();
         if (metamask) {
           try {
@@ -203,7 +162,7 @@ export function WalletProvider({ children }) {
   return (
     <WalletContext.Provider value={{
       isConnected, walletAddress, walletType, userOrders, userStats,
-      connectPhantom, connectMetaMask, disconnect, sendPayment, fetchUserOrders,
+      connectMetaMask, disconnect, sendPayment, fetchUserOrders,
     }}>
       {children}
     </WalletContext.Provider>
