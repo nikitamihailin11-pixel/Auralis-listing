@@ -397,7 +397,7 @@ export const TokenSale = () => {
               {/* Purchase button */}
               <Button 
                 onClick={handlePurchase} 
-                disabled={isLoading || !quantity || parseFloat(quantity) <= 0} 
+                disabled={isLoading || !quantity || parseFloat(quantity) <= 0 || parseFloat(totalCost) < MIN_PURCHASE_USDT} 
                 data-testid="create-order-button"
                 className="w-full h-16 text-lg font-bold bg-gradient-to-r from-[#d4a853] to-[#c87840] hover:from-[#e5b964] hover:to-[#d98950] disabled:opacity-50 text-[#0d1117] rounded-xl glow-gold transition-all hover:scale-[1.02]"
               >
@@ -406,6 +406,8 @@ export const TokenSale = () => {
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#0d1117]" />
                     Confirming...
                   </div>
+                ) : parseFloat(totalCost) < MIN_PURCHASE_USDT && quantity ? (
+                  <>Min $10 USDT</>
                 ) : (
                   <><ArrowRight className="w-6 h-6 mr-2" />Buy {quantity || 0} ARA for ${totalCost}</>
                 )}
