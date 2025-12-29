@@ -25,8 +25,10 @@ export function WalletProvider({ children }) {
     try {
       const response = await axios.get(`${API}/orders/wallet/${address}`);
       setUserOrders(response.data);
-      const totalTokens = response.data.reduce((sum, order) => sum + order.quantity, 0);
-      const totalSpent = response.data.reduce((sum, order) => sum + order.total_amount, 0);
+      // Only count confirmed orders for user stats
+      const confirmedOrders = response.data.filter(order => order.status === 'confirmed');
+      const totalTokens = confirmedOrders.reduce((sum, order) => sum + order.quantity, 0);
+      const totalSpent = confirmedOrders.reduce((sum, order) => sum + order.total_amount, 0);
       setUserStats({ totalTokens, totalSpent });
     } catch (error) {
       console.error('Failed to fetch user orders:', error);
