@@ -326,44 +326,15 @@ async def verify_payment(order_id: str):
                                     {"_id": ObjectId(order_id)},
                                     {"$set": {"status": OrderStatus.FAILED.value, "updated_at": now.isoformat()}}
                                 )
-                                return {"verified": False, "error": "Transaction failed on blockchain", "status": "failed"}
+                                return {"verified": False, "error": "Transaction failed on blockchain", "status": "failed", "tx_failed": True}
                             
-                            # Transaction successful - verify it's USDT to our address
-                            to_address = receipt.get("to", "").lower()
-                            
-                            if to_address == ETH_USDT_CONTRACT:
-                                # Parse logs to verify the transfer
-                                logs = receipt.get("logs", [])
-                                
-                                for log in logs:
-                                    if len(log.get("topics", [])) >= 3:
-                                        recipient = "0x" + log["topics"][2][-40:].lower()
-                                        if recipient == ETH_PAYMENT_ADDRESS:
-                                            # SUCCESS! Transfer verified
-                                            now = datetime.now(timezone.utc)
-                                            await orders_collection.update_one(
-                                                {"_id": ObjectId(order_id)},
-                                                {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
-                                            )
-                                            return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
-                                
-                                # Logs didn't match - but transaction exists, confirm anyway
-                                # (might be different transfer format)
-                                now = datetime.now(timezone.utc)
-                                await orders_collection.update_one(
-                                    {"_id": ObjectId(order_id)},
-                                    {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
-                                )
-                                return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
-                            else:
-                                # Transaction to different contract - still might be valid
-                                # If transaction is successful, confirm it
-                                now = datetime.now(timezone.utc)
-                                await orders_collection.update_one(
-                                    {"_id": ObjectId(order_id)},
-                                    {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
-                                )
-                                return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
+                            # Transaction successful on blockchain - confirm it
+                            now = datetime.now(timezone.utc)
+                            await orders_collection.update_one(
+                                {"_id": ObjectId(order_id)},
+                                {"$set": {"status": OrderStatus.CONFIRMED.value, "updated_at": now.isoformat()}}
+                            )
+                            return {"verified": True, "status": "confirmed", "tx_hash": tx_hash}
                         
                 except Exception as e:
                     logging.warning(f"RPC {rpc_url} failed: {str(e)}")
