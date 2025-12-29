@@ -84,36 +84,47 @@ export const TokenSale = () => {
     const usdtAmount = parseFloat(totalCost);
     
     setIsLoading(true);
+    setShowTxModal(true);
+    setTxStep('creating');
+    setTxError('');
+    setCurrentTxHash('');
+    
+    let orderId = null;
+    
     try {
       // Step 1: Create order (awaiting_payment status)
+      setTxStep('creating');
       const orderResponse = await axios.post(`${API}/orders/create`, {
         wallet_address: walletAddress,
         blockchain: 'ethereum',
         quantity: parseFloat(quantity),
         price_per_token: ARA_PRICE,
       });
-      const orderId = orderResponse.data.id;
+      orderId = orderResponse.data.id;
 
       // Step 2: Send USDT payment via MetaMask
-      toast.info('Confirm transaction in MetaMask...');
+      setTxStep('waiting_wallet');
       
       const paymentResult = await sendPayment(usdtAmount);
       
       if (paymentResult && paymentResult.hash) {
+        setCurrentTxHash(paymentResult.hash);
+        setTxStep('sending');
+        
         // Step 3: Submit transaction hash for verification
         await axios.put(`${API}/orders/${orderId}/submit-payment`, {
           tx_hash: paymentResult.hash
         });
-        
-        toast.info('Payment sent! Verifying transaction...');
 
         // Step 4: Verify payment on blockchain
+        setTxStep('verifying');
         const verifyResponse = await axios.post(`${API}/orders/${orderId}/verify-payment`);
         
         if (verifyResponse.data.verified) {
           // Payment verified successfully
-          await fetchUserOrders(walletAddress);
+          setTxStep('success');
           
+          await fetchUserOrders(walletAddress);
           const statsResponse = await axios.get(`${API}/stats`);
           setStats(statsResponse.data);
 
@@ -126,23 +137,56 @@ export const TokenSale = () => {
             txHash: paymentResult.hash,
           });
           
-          setShowSuccessModal(true);
           setQuantity('');
-          toast.success('Payment verified! Tokens will be distributed after presale.');
+          
+          // Close tx modal after 3 seconds and show success modal
+          setTimeout(() => {
+            setShowTxModal(false);
+            setShowSuccessModal(true);
+          }, 3000);
         } else {
-          // Payment not yet verified - might need time
-          toast.warning(`Payment sent but pending verification: ${verifyResponse.data.error || 'Transaction is being processed'}. Check your orders for status.`);
+          // Payment not verified - show error
+          setTxStep('error');
+          setTxError(verifyResponse.data.error || 'Transaction verification failed. Please contact support.');
+          
+          // Update order status to failed
+          try {
+            await axios.put(`${API}/orders/${orderId}/status`, { status: 'failed' });
+          } catch (e) {}
+          
           await fetchUserOrders(walletAddress);
           setQuantity('');
+          
+          // Close modal after 5 seconds
+          setTimeout(() => {
+            setShowTxModal(false);
+          }, 5000);
         }
       }
     } catch (error) {
       console.error('Purchase error:', error);
       
+      setTxStep('error');
+      
       if (error.message?.includes('User rejected') || error.code === 4001) {
-        toast.error('Transaction cancelled');
+        setTxError('Transaction was cancelled by user.');
       } else if (error.message?.includes('insufficient')) {
-        toast.error('Insufficient USDT balance');
+        setTxError('Insufficient USDT balance in your wallet.');
+      } else {
+        setTxError(error.message || 'Transaction failed. Please try again.');
+      }
+      
+      // Mark order as failed if it was created
+      if (orderId) {
+        try {
+          await axios.put(`${API}/orders/${orderId}/status`, { status: 'failed' });
+        } catch (e) {}
+      }
+      
+      // Close modal after 5 seconds
+      setTimeout(() => {
+        setShowTxModal(false);
+      }, 5000);
       } else {
         toast.error(error.message || 'Payment failed. Please try again.');
       }
